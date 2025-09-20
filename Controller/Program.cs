@@ -59,6 +59,7 @@ builder.Services.AddScoped<IRepository<FarmProfile>, Repository<FarmProfile>>();
 builder.Services.AddScoped<IRepository<Address>, Repository<Address>>();
 // builder.Services.AddScoped<IRepository<SupportedBank>, Repository<SupportedBank>>();
 builder.Services.AddScoped<IRepository<ForumCategory>, Repository<ForumCategory>>();
+builder.Services.AddScoped<IRepository<ForumPost>, Repository<ForumPost>>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -66,11 +67,13 @@ builder.Services.AddScoped<IFarmProfileRepository, FarmProfileRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 // builder.Services.AddScoped<ISupportedBanksRepository, SupportedBanksRepository>();
 builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
+builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFarmProfileService, FarmProfileService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
+builder.Services.AddScoped<IForumPostService,ForumPostService>();
 
 // Infrastructure registrations
 builder.Services.AddInfrastructure();
