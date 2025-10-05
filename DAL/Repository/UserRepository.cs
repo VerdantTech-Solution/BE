@@ -22,15 +22,11 @@ public class UserRepository : IUserRepository
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            user.LastLoginAt = DateTime.Now;
-            user.CreatedAt = DateTime.Now;
-            user.UpdatedAt = DateTime.Now;
+            user.LastLoginAt = DateTime.UtcNow;
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
             user.Status = UserStatus.Active;
-            
-            if(user.Role == UserRole.Admin || user.Role == UserRole.Staff)
-            {
-                user.IsVerified = true;
-            }
+            user.Role = UserRole.Customer;
             
             var createdUser = await _userRepository.CreateAsync(user, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -48,7 +44,7 @@ public class UserRepository : IUserRepository
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            user.UpdatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.UtcNow;
             var updatedUser = await _userRepository.UpdateAsync(user, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return updatedUser;
@@ -60,8 +56,35 @@ public class UserRepository : IUserRepository
         }
     }
     
+    public async Task<User> CreateStaffWithTransactionAsync(User user, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            user.LastLoginAt = DateTime.UtcNow;
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            user.Status = UserStatus.Active;
+            user.Role = UserRole.Staff;
+            user.IsVerified = true;
+            
+            var createdUser = await _userRepository.CreateAsync(user, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return createdUser;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+    
     public async Task<User?> GetUserByIdAsync(ulong userId, CancellationToken cancellationToken = default) =>
-        await _userRepository.GetAsync(u => u.Id == userId && u.Status == UserStatus.Active, useNoTracking: true, cancellationToken);
+        await _userRepository.GetWithRelationsAsync(
+            u => u.Id == userId,
+            useNoTracking: true,
+            query => query.Include(u => u.UserAddresses).ThenInclude(ua => ua.Address),
+            cancellationToken);
     
     public async Task<(List<User>, int totalCount)> GetAllUsersAsync(int page, int pageSize, String? role = null, CancellationToken cancellationToken = default)
     {
@@ -72,25 +95,26 @@ public class UserRepository : IUserRepository
         {
             if (Enum.TryParse<UserRole>(role, true, out var userRole))
             {
-                filter = u => u.Status == UserStatus.Active && u.Role == userRole;
+                filter = u => u.Role == userRole;
             }
         }
         else
         {
             // Default filter: only customers if no role specified
-            filter = u => u.Status == UserStatus.Active && u.Role == UserRole.Customer;
+            filter = u => u.Role == UserRole.Customer;
         }
 
-        return await _userRepository.GetPaginatedAsync(
+        return await _userRepository.GetPaginatedWithRelationsAsync(
             page, 
             pageSize, 
             filter, 
             useNoTracking: true, 
             orderBy: query => query.OrderByDescending(u => u.UpdatedAt),
+            includeFunc: query => query.Include(u => u.UserAddresses).ThenInclude(ua => ua.Address),
             cancellationToken
         );
     }
     
-    public async Task<bool> CheckEmailExistsAsync(string username, CancellationToken cancellationToken = default) =>
-        await _userRepository.AnyAsync(u => u.Email.ToUpper() == username.ToUpper(), cancellationToken);
+    public async Task<bool> CheckEmailExistsAsync(string email, CancellationToken cancellationToken = default) =>
+        await _userRepository.AnyAsync(u => u.Email.ToUpper() == email.ToUpper(), cancellationToken);
 }

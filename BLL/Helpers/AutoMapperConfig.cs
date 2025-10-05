@@ -1,8 +1,10 @@
 using AutoMapper;
 using BLL.DTO.Address;
+using BLL.DTO.Cart;
+using BLL.DTO.CO2;
 using BLL.DTO.FarmProfile;
-using BLL.DTO.SupportedBanks;
-// using BLL.DTO.SustainabilityCertifications;
+using BLL.DTO.Order;
+using BLL.DTO.ProductCategory;
 using BLL.DTO.User;
 using DAL.Data.Models;
 
@@ -22,11 +24,17 @@ public class AutoMapperConfig : Profile
         //CreateMap<StudentDTO, Student>().ReverseMap()
         //.ForMember(n => n.Address, opt => opt.MapFrom(n => string.IsNullOrEmpty(n.Address) ? "No value found" : n.Address));
         
+        // User mappings
         CreateMap<UserCreateDTO, User>().ReverseMap();
-        CreateMap<UserResponseDTO, User>().ReverseMap();
+        CreateMap<StaffCreateDTO, User>().ReverseMap();
         CreateMap<UserUpdateDTO, User>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-
+        CreateMap<UserResponseDTO, User>().ReverseMap()
+            .ForMember(dest => dest.Addresses, opt => opt.MapFrom(src => src.UserAddresses.Select(ua => ua.Address)));
+        CreateMap<UserAddressCreateDTO, Address>().ReverseMap();
+        CreateMap<UserAddressUpdateDTO, Address>().ReverseMap();
+        CreateMap<UserAddressUpdateDTO, UserAddress>().ReverseMap();
+        
         // FarmProfile mappings
         CreateMap<FarmProfileCreateDto, FarmProfile>().ReverseMap();
         CreateMap<FarmProfile, FarmProfileResponseDTO>().ReverseMap();
@@ -38,6 +46,57 @@ public class AutoMapperConfig : Profile
         CreateMap<FarmProfileCreateDto, Address>().ReverseMap();
         CreateMap<FarmProfileUpdateDTO, Address>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            
+        // CO2Footprint mappings
+        CreateMap<Fertilizer, CO2FootprintCreateDTO>().ReverseMap();
+        CreateMap<EnvironmentalDatum, CO2FootprintCreateDTO>().ReverseMap();
+        CreateMap<EnergyUsage, CO2FootprintCreateDTO>().ReverseMap();
+        CreateMap<EnvironmentalDatum, CO2FootprintResponseDTO>()
+            .ForMember(dest => dest.EnergyUsage, opt => opt.MapFrom(src => src.EnergyUsage))
+            .ForMember(dest => dest.Fertilizer, opt => opt.MapFrom(src => src.Fertilizer));
+        CreateMap<EnergyUsageDTO, EnergyUsage>().ReverseMap();
+        CreateMap<FertilizerDTO, Fertilizer>().ReverseMap();
+        
+        // ProductCategory mappings
+        CreateMap<ProductCategoryCreateDTO, ProductCategory>().ReverseMap();
+        CreateMap<ProductCategoryUpdateDTO, ProductCategory>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<ProductCategory, ProductCategoryResponseDTO>().ReverseMap();
+        
+        // Product mappings
+        CreateMap<BLL.DTO.Product.ProductCreateDTO, Product>().ReverseMap();
+        CreateMap<BLL.DTO.Product.ProductUpdateDTO, Product>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<Product, BLL.DTO.Product.ProductResponseDTO>().ReverseMap();
 
+        // Cart mappings
+        CreateMap<CartDTO, CartItem>().ReverseMap();
+        CreateMap<Cart, CartResponseDTO>()
+            .ForMember(d => d.UserInfo, o => o.MapFrom(s => s.Customer))
+            .ForMember(d => d.CartItems,  o => o.MapFrom(s => s.CartItems));
+        CreateMap<CartItem, CartItemDTO>()
+            .ForMember(d => d.ProductId,     o => o.MapFrom(s => s.ProductId))
+            .ForMember(d => d.Quantity,      o => o.MapFrom(s => s.Quantity))
+            .ForMember(d => d.ProductName,   o => o.MapFrom(s => s.Product.ProductName))
+            .ForMember(d => d.Slug,          o => o.MapFrom(s => s.Product.Slug))
+            .ForMember(d => d.Description,   o => o.MapFrom(s => s.Product.Description))
+            .ForMember(d => d.UnitPrice,     o => o.MapFrom(s => s.Product.UnitPrice))
+            .ForMember(d => d.Images,        o => o.MapFrom(s => s.Product.Images))
+            .ForMember(d => d.IsActive,      o => o.MapFrom(s => s.Product.IsActive))
+            .ForMember(d => d.SoldCount,     o => o.MapFrom(s => s.Product.SoldCount))
+            .ForMember(d => d.RatingAverage, o => o.MapFrom(s => s.Product.RatingAverage));
+
+        // Order mappings
+        CreateMap<OrderCreateDTO, DAL.Data.Models.Order>()
+            .ForMember(d => d.OrderDetails, opt => opt.Ignore());
+        CreateMap<OrderDetailDTO, OrderDetail>().ReverseMap();
+        CreateMap<OrderUpdateDTO, DAL.Data.Models.Order>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));;
+        CreateMap<OrderDetailUpdateDTO, OrderDetail>()
+            .ForMember(d => d.Id, opt => opt.Ignore())
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));;
+        CreateMap<DAL.Data.Models.Order, OrderResponseDTO>().ReverseMap();
+        CreateMap<OrderDetail, OrderDetailResponseDTO>().ReverseMap();
+        CreateMap<Product, ProductResponseDTO>().ReverseMap();
     }
 }

@@ -56,16 +56,6 @@ public enum FarmProfileStatus
     Deleted
 }
 
-public enum SoilType
-{
-    DatPhuSa,       // Đất phù sa
-    DatDoBazan,     // Đất đỏ Bazan
-    DatFeralit,     // Đất Feralit
-    DatThit,        // Đất thịt
-    DatSet,         // Đất sét
-    DatCat          // Đất cát
-}
-
 // =====================================================
 // AI CHATBOT ENUMS
 // =====================================================
@@ -101,11 +91,7 @@ public enum ForumCommentStatus
 public enum RequestType
 {
     RefundRequest,
-    PayoutRequest,
-    SupportRequest,
-    VendorRegister,
-    ProductRegistration,
-    ProductCertification
+    SupportRequest
 }
 
 public enum RequestStatus

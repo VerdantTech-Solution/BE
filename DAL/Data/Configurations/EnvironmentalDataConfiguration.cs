@@ -28,31 +28,57 @@ public class EnvironmentalDataConfiguration : IEntityTypeConfiguration<Environme
             .IsRequired()
             .HasColumnName("customer_id");
         
-        // Date field
-        builder.Property(e => e.MeasurementDate)
+        // Date fields
+        builder.Property(e => e.MeasurementStartDate)
             .HasColumnType("date")
             .IsRequired()
-            .HasColumnName("measurement_date");
-        
-        // Decimal fields with precision
-        builder.Property(e => e.SoilPh)
-            .HasPrecision(3, 1)
-            .HasColumnName("soil_ph");
-            
+            .HasColumnName("measurement_start_date")
+            .HasComment("Ngày bắt đầu ghi nhận dữ liệu");
+
+        builder.Property(e => e.MeasurementEndDate)
+            .HasColumnType("date")
+            .IsRequired()
+            .HasColumnName("measurement_end_date")
+            .HasComment("Ngày kết thúc ghi nhận dữ liệu");
+
+        // Soil composition (0–30 cm depth)
+        builder.Property(e => e.SandPct)
+            .HasPrecision(5, 2)
+            .HasColumnName("sand_pct")
+            .HasComment("Sand (%) 0–30 cm");
+
+        builder.Property(e => e.SiltPct)
+            .HasPrecision(5, 2)
+            .HasColumnName("silt_pct")
+            .HasComment("Silt (%) 0–30 cm");
+
+        builder.Property(e => e.ClayPct)
+            .HasPrecision(5, 2)
+            .HasColumnName("clay_pct")
+            .HasComment("Clay (%) 0–30 cm");
+
+        // pH with updated precision and constraint
+        builder.Property(e => e.Phh2o)
+            .HasPrecision(4, 2)
+            .HasColumnName("phh2o")
+            .HasComment("pH (H2O) 0–30 cm");
+
+        // Hydrology data
+        builder.Property(e => e.PrecipitationSum)
+            .HasPrecision(7, 2)
+            .HasColumnName("precipitation_sum")
+            .HasComment("Tổng lượng mưa (mm)");
+
+        builder.Property(e => e.Et0FaoEvapotranspiration)
+            .HasPrecision(7, 2)
+            .HasColumnName("et0_fao_evapotranspiration")
+            .HasComment("ET0 FAO (mm)");
+
+        // CO2 footprint
         builder.Property(e => e.Co2Footprint)
             .HasPrecision(10, 2)
-            .HasColumnName("co2_footprint");
-            
-        builder.Property(e => e.SoilMoisturePercentage)
-            .HasPrecision(5, 2)
-            .HasColumnName("soil_moisture_percentage");
-
-        // Soil type enum
-        builder.Property(e => e.SoilType)
-            .HasConversion<string>()
-            .HasColumnType("enum('DatPhuSa','DatDoBazan','DatFeralit','DatThit','DatSet','DatCat')")
-            .IsRequired()
-            .HasColumnName("soil_type");
+            .HasColumnName("co2_footprint")
+            .HasComment("Lượng khí thải CO2 tính bằng kg");
         
         // Text field
         builder.Property(e => e.Notes)
@@ -83,16 +109,10 @@ public class EnvironmentalDataConfiguration : IEntityTypeConfiguration<Environme
             .OnDelete(DeleteBehavior.Restrict);
         
         // Indexes
-        builder.HasIndex(e => new { e.FarmProfileId, e.MeasurementDate })
-            .HasDatabaseName("idx_farm_date");
+        builder.HasIndex(e => new { e.FarmProfileId, e.MeasurementStartDate, e.MeasurementEndDate })
+            .HasDatabaseName("idx_farm_dates");
             
-        builder.HasIndex(e => e.CustomerId)
-            .HasDatabaseName("idx_customer");
-            
-        builder.HasIndex(e => e.MeasurementDate)
-            .HasDatabaseName("idx_date");
-            
-        builder.HasIndex(e => e.SoilType)
-            .HasDatabaseName("idx_soil_type");
+        builder.HasIndex(e => e.FarmProfileId)
+            .HasDatabaseName("idx_farm_profile");
     }
 }

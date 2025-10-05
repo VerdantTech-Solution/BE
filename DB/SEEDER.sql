@@ -1,31 +1,54 @@
--- SEEDER DATA FOR VERDANTTECH DATABASE v7.1
+-- SEEDER DATA FOR VERDANTTECH DATABASE v8.0
 -- All passwords are: $2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS
--- Updated for schema v7.1: Added addresses table, updated foreign key references, structural changes
--- Dates adjusted to be recent as of 2025-09-15, ensured foreign key consistency
+-- Updated for schema v8.0: Removed address_id from users, added user_addresses junction table for many-to-many relationship
+-- Updated environmental_data table: renamed soil_ph to phh2o, removed soil_type enum, added new environmental measurement fields
+-- Dates adjusted to be recent as of 2025-09-22, ensured foreign key consistency
 
--- Insert Addresses (new table in v7.1 for centralized address management)
-INSERT INTO `addresses` (`id`, `location_address`, `province`, `district`, `commune`, `latitude`, `longitude`, `created_at`, `updated_at`) VALUES
-(1, 'Số 789 Đường Công Nghiệp, Quận 7, TP.HCM', 'TP.HCM', 'Quận 7', 'Phường Tân Phong', 10.72890000, 106.71940000, '2025-09-08 08:00:00', '2025-09-08 08:00:00'),
-(2, 'Số 321 Đường Nông Sản, Quận Tân Bình, TP.HCM', 'TP.HCM', 'Quận Tân Bình', 'Phường 15', 10.80150000, 106.65340000, '2025-09-08 08:30:00', '2025-09-08 08:30:00'),
-(3, 'Số 123 Đường Nông Nghiệp, Tân Phong', 'Đồng Nai', 'Biên Hòa', 'Tân Phong', 10.94740000, 106.82420000, '2025-09-08 10:00:00', '2025-09-08 10:00:00'),
-(4, 'Số 456 Đường Nông Thôn, Đức Hòa Thượng', 'Long An', 'Đức Hòa', 'Đức Hòa Thượng', 10.88080000, 106.39220000, '2025-09-08 10:30:00', '2025-09-08 10:30:00');
+-- Insert Addresses (updated with FPT University HCM address for admin and real Vietnamese address data)
+INSERT INTO `addresses` (`id`, `location_address`, `province`, `district`, `commune`, `province_code`, `district_code`, `commune_code`, `latitude`, `longitude`, `created_at`, `updated_at`) VALUES
+(1, 'Lô E2a-7, Đường D1, Khu Công nghệ cao, Phường Long Thạnh Mỹ', 'TP.HCM', 'Thành phố Thủ Đức', 'Phường Long Thạnh Mỹ', '700000', '720300', '720300', 10.84142000, 106.80986000, '2025-09-22 07:45:00', '2025-09-22 07:45:00'),
+(2, 'Số 789 Đường Công Nghiệp, Quận Hai Bà Trưng, Hà Nội', 'Hà Nội', 'Quận Hai Bà Trưng', 'Phường Bách Khoa', '100000', '100300', '10030001', 21.00650000, 105.84250000, '2025-09-22 08:00:00', '2025-09-22 08:00:00'),
+(3, 'Số 321 Đường Nông Sản, Quận 7, TP.HCM', 'Hồ Chí Minh', 'Quận 7', 'Phường Tân Phong', '700000', '700700', '70070001', 10.72890000, 106.71940000, '2025-09-22 08:30:00', '2025-09-22 08:30:00'),
+(4, 'Số 123 Đường Nông Nghiệp, Thành phố Biên Hòa, Đồng Nai', 'Đồng Nai', 'Thành phố Biên Hòa', 'Phường Tân Phong', '810000', '810001', '81000101', 10.94740000, 106.82420000, '2025-09-22 10:00:00', '2025-09-22 10:00:00'),
+(5, 'Số 456 Đường Nông Thôn, Huyện Đức Hòa, Long An', 'Long An', 'Huyện Đức Hòa', 'Xã Đức Hòa Thượng', '850000', '850300', '85030001', 10.88080000, 106.39220000, '2025-09-22 10:30:00', '2025-09-22 10:30:00'),
+(6, 'Số 555 Đường Quang Minh, Huyện Mê Linh, Hà Nội', 'Hà Nội', 'Huyện Mê Linh', 'Thị trấn Quang Minh', '100000', '102900', '272', 21.17890000, 105.69540000, '2025-09-22 11:00:00', '2025-09-22 11:00:00'),
+(7, 'Số 777 Đường Tân Phú, Quận Tân Bình, TP.HCM', 'Hồ Chí Minh', 'Quận Tân Bình', 'Phường 15', '700000', '700300', '70030015', 10.80150000, 106.65340000, '2025-09-22 11:30:00', '2025-09-22 11:30:00'),
+(8, 'Số 999 Đường Công Viên, Quận Hà Đông, Hà Nội', 'Hà Nội', 'Quận Hà Đông', 'Phường Hà Cầu', '100000', '101500', '10150001', 20.97240000, 105.78420000, '2025-09-22 12:00:00', '2025-09-22 12:00:00'),
+(9, 'Số 168 Đường Thạch Đà, Huyện Mê Linh, Hà Nội', 'Hà Nội', 'Huyện Mê Linh', 'Xã Thạch Đà', '100000', '102900', '266', 21.19750000, 105.71240000, '2025-09-22 12:30:00', '2025-09-22 12:30:00');
 
 -- Insert Users (with gmail.com emails, consistent password, and vendor role users)
-INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone_number`, `tax_code`, `address_id`, `is_verified`, `verification_token`, `verification_sent_at`, `avatar_url`, `status`, `last_login_at`, `RefreshToken`, `RefreshTokenExpiresAt`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'admin@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'admin', 'Quản trị viên hệ thống', '0901234567', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 08:00:00', NULL, NULL, '2025-09-08 07:00:00', '2025-09-09 08:00:00', NULL),
-(2, 'staff1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Nguyễn Văn Nhân Viên 1', '0901234568', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 07:30:00', NULL, NULL, '2025-09-08 07:00:00', '2025-09-09 07:30:00', NULL),
-(3, 'staff2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Trần Thị Nhân Viên 2', '0901234569', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 07:00:00', NULL, NULL, '2025-09-08 08:00:00', '2025-09-09 07:00:00', NULL),
-(4, 'staff3@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Lê Văn Nhân Viên 3', '0901234570', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 06:30:00', NULL, NULL, '2025-09-08 08:30:00', '2025-09-09 06:30:00', NULL),
+INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone_number`, `tax_code`, `is_verified`, `verification_token`, `verification_sent_at`, `avatar_url`, `status`, `last_login_at`, `RefreshToken`, `RefreshTokenExpiresAt`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'admin@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'admin', 'Quản trị viên hệ thống', '0901234567', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 08:00:00', NULL, NULL, '2025-09-22 07:00:00', '2025-09-22 08:00:00', NULL),
+(2, 'staff1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Nguyễn Văn Nhân Viên 1', '0901234568', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 07:30:00', NULL, NULL, '2025-09-22 07:00:00', '2025-09-22 07:30:00', NULL),
+(3, 'staff2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Trần Thị Nhân Viên 2', '0901234569', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 07:00:00', NULL, NULL, '2025-09-22 08:00:00', '2025-09-22 07:00:00', NULL),
+(4, 'staff3@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'staff', 'Lê Văn Nhân Viên 3', '0901234570', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 06:30:00', NULL, NULL, '2025-09-22 08:30:00', '2025-09-22 06:30:00', NULL),
 -- Vendor users (NEW in v7)
-(5, 'vendor1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'vendor', 'Công Ty Thiết Bị Nông Nghiệp Xanh', '0901234571', 'MST123456789', 1, 1, NULL, NULL, NULL, 'active', '2025-09-09 08:15:00', NULL, NULL, '2025-09-08 09:00:00', '2025-09-09 08:15:00', NULL),
-(6, 'vendor2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'vendor', 'Cửa Hàng Nông Sản Sạch VerdantTech', '0901234572', 'MST987654321', 2, 1, NULL, NULL, NULL, 'active', '2025-09-09 08:10:00', NULL, NULL, '2025-09-08 09:30:00', '2025-09-09 08:10:00', NULL),
+(5, 'vendor1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'vendor', 'Công Ty Thiết Bị Nông Nghiệp Xanh', '0901234571', 'MST123456789', 1, NULL, NULL, NULL, 'active', '2025-09-22 08:15:00', NULL, NULL, '2025-09-22 09:00:00', '2025-09-22 08:15:00', NULL),
+(6, 'vendor2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'vendor', 'Cửa Hàng Nông Sản Sạch VerdantTech', '0901234572', 'MST987654321', 1, NULL, NULL, NULL, 'active', '2025-09-22 08:10:00', NULL, NULL, '2025-09-22 09:30:00', '2025-09-22 08:10:00', NULL),
 -- Customer users
-(7, 'customer1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Phạm Văn Khách Hàng 1', '0901234573', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 08:15:00', NULL, NULL, '2025-09-08 09:00:00', '2025-09-09 08:15:00', NULL),
-(8, 'customer2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Hoàng Thị Khách Hàng 2', '0901234574', NULL, NULL, 1, NULL, NULL, NULL, 'active', '2025-09-09 08:10:00', NULL, NULL, '2025-09-08 09:30:00', '2025-09-09 08:10:00', NULL),
-(9, 'farmer1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Nguyễn Văn Nông Dân 1', '0901234575', NULL, 3, 1, NULL, NULL, NULL, 'active', '2025-09-09 06:00:00', NULL, NULL, '2025-09-08 10:00:00', '2025-09-09 06:00:00', NULL),
-(10, 'farmer2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Trần Thị Nông Dân 2', '0901234576', NULL, 4, 1, NULL, NULL, NULL, 'active', '2025-09-09 05:30:00', NULL, NULL, '2025-09-08 10:30:00', '2025-09-09 05:30:00', NULL),
-(11, 'testuser@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Người Dùng Test', '0901234577', NULL, NULL, 0, 'test-token-123', '2025-09-09 07:00:00', NULL, 'active', NULL, NULL, NULL, '2025-09-09 07:00:00', '2025-09-09 07:00:00', NULL),
-(12, 'inactive@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Người Dùng Không Hoạt Động', '0901234578', NULL, NULL, 1, NULL, NULL, NULL, 'inactive', '2025-09-08 15:00:00', NULL, NULL, '2025-09-08 11:00:00', '2025-09-08 15:00:00', NULL);
+(7, 'customer1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Phạm Văn Khách Hàng 1', '0901234573', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 08:15:00', NULL, NULL, '2025-09-22 09:00:00', '2025-09-22 08:15:00', NULL),
+(8, 'customer2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Hoàng Thị Khách Hàng 2', '0901234574', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 08:10:00', NULL, NULL, '2025-09-22 09:30:00', '2025-09-22 08:10:00', NULL),
+(9, 'farmer1@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Nguyễn Văn Nông Dân 1', '0901234575', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 06:00:00', NULL, NULL, '2025-09-22 10:00:00', '2025-09-22 06:00:00', NULL),
+(10, 'farmer2@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Trần Thị Nông Dân 2', '0901234576', NULL, 1, NULL, NULL, NULL, 'active', '2025-09-22 05:30:00', NULL, NULL, '2025-09-22 10:30:00', '2025-09-22 05:30:00', NULL),
+(11, 'testuser@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Người Dùng Test', '0901234577', NULL, 0, 'test-token-123', '2025-09-22 07:00:00', NULL, 'active', NULL, NULL, NULL, '2025-09-22 07:00:00', '2025-09-22 07:00:00', NULL),
+(12, 'inactive@gmail.com', '$2a$11$eebvzn7Au.D1ILICdBn4zeE8kMjPcMwg2CkbCUOiVsWFURxS6JriS', 'customer', 'Người Dùng Không Hoạt Động', '0901234578', NULL, 1, NULL, NULL, NULL, 'inactive', '2025-09-22 15:00:00', NULL, NULL, '2025-09-22 11:00:00', '2025-09-22 15:00:00', NULL);
+
+-- Insert User Addresses (NEW in v7.2 - junction table for many-to-many relationship between users and addresses)
+INSERT INTO `user_addresses` (`id`, `user_id`, `address_id`, `is_deleted`, `created_at`, `updated_at`, `deleted_at`) VALUES
+-- Admin address (FPT University HCM)
+(1, 1, 1, 0, '2025-09-22 07:45:00', '2025-09-22 07:45:00', NULL), -- Admin -> Address 1 (FPT University HCM)
+-- Vendor addresses
+(2, 5, 2, 0, '2025-09-22 09:00:00', '2025-09-22 09:00:00', NULL), -- Vendor 1 -> Address 2 (Hà Nội)
+(3, 6, 3, 0, '2025-09-22 09:30:00', '2025-09-22 09:30:00', NULL), -- Vendor 2 -> Address 3 (TP.HCM)
+-- Farmer addresses
+(4, 9, 4, 0, '2025-09-22 10:00:00', '2025-09-22 10:00:00', NULL), -- Farmer 1 -> Address 4 (Đồng Nai)
+(5, 10, 5, 0, '2025-09-22 10:30:00', '2025-09-22 10:30:00', NULL), -- Farmer 2 -> Address 5 (Long An)
+-- Additional addresses for users (demonstrating many-to-many capability)
+(6, 7, 6, 0, '2025-09-22 11:00:00', '2025-09-22 11:00:00', NULL), -- Customer 1 -> Address 6 (Mê Linh, Hà Nội)
+(7, 8, 7, 0, '2025-09-22 11:30:00', '2025-09-22 11:30:00', NULL), -- Customer 2 -> Address 7 (Tân Bình, TP.HCM)
+(8, 8, 8, 0, '2025-09-22 12:00:00', '2025-09-22 12:00:00', NULL), -- Customer 2 also has Address 8 (Hà Đông, Hà Nội)
+(9, 9, 9, 0, '2025-09-22 12:30:00', '2025-09-22 12:30:00', NULL), -- Farmer 1 also has Address 9 (Thạch Đà, Mê Linh)
+(10, 2, 3, 0, '2025-09-22 13:30:00', '2025-09-22 13:30:00', NULL); -- Staff 1 -> Address 3 (TP.HCM)
 
 -- Insert Vendor Profiles (for vendor users)
 INSERT INTO `vendor_profiles` (`id`, `user_id`, `company_name`, `slug`, `business_registration_number`, `verified_at`, `verified_by`, `created_at`, `updated_at`) VALUES
@@ -58,8 +81,9 @@ INSERT INTO `vendor_certificates` (`id`, `vendor_id`, `certification_code`, `cer
 
 -- Insert Farm Profiles
 INSERT INTO `farm_profiles` (`id`, `user_id`, `farm_name`, `farm_size_hectares`, `address_id`, `primary_crops`, `status`, `created_at`, `updated_at`) VALUES
-(1, 9, 'Trang trại Xanh Sạch Đồng Nai', 5.50, 3, 'Lúa, Rau xanh, Cà chua', 'Active', '2025-09-08 10:00:00', '2025-09-09 06:00:00'),
-(2, 10, 'Trang trại Hữu Cơ Long An', 8.25, 4, 'Rau củ, Trái cây, Thảo dược', 'Active', '2025-09-08 10:30:00', '2025-09-09 05:30:00');
+(1, 9, 'Trang trại Xanh Sạch Đồng Nai', 5.50, 4, 'Lúa, Rau xanh, Cà chua', 'Active', '2025-09-08 10:00:00', '2025-09-09 06:00:00'),
+(2, 10, 'Trang trại Hữu Cơ Long An', 8.25, 5, 'Rau củ, Trái cây, Thảo dược', 'Active', '2025-09-08 10:30:00', '2025-09-09 05:30:00'),
+(3, 9, 'Trang trại Thực nghiệm Mê Linh', 3.75, 9, 'Rau sạch, Hoa màu', 'Active', '2025-09-08 11:00:00', '2025-09-09 06:30:00');
 
 -- Insert Product Categories
 INSERT INTO `product_categories` (`id`, `parent_id`, `name`, `slug`, `description`, `icon_url`, `is_active`, `created_at`, `updated_at`) VALUES
@@ -103,12 +127,12 @@ INSERT INTO `cart` (`id`, `customer_id`, `created_at`, `updated_at`) VALUES
 (3, 9, '2025-09-15 10:00:00', '2025-09-15 10:00:00');
 
 -- Insert Cart Items (new table in v7.1)
-INSERT INTO `cart_items` (`id`, `cart_id`, `product_id`, `quantity`, `unit_price`, `created_at`, `updated_at`) VALUES
-(1, 1, 3, 5, 50000.00, '2025-09-15 08:00:00', '2025-09-15 08:00:00'),
-(2, 1, 4, 2, 100000.00, '2025-09-15 08:15:00', '2025-09-15 08:15:00'),
-(3, 2, 1, 1, 25000000.00, '2025-09-15 09:00:00', '2025-09-15 09:00:00'),
-(4, 2, 5, 1, 30000000.00, '2025-09-15 09:10:00', '2025-09-15 09:10:00'),
-(5, 3, 3, 10, 50000.00, '2025-09-15 10:00:00', '2025-09-15 10:00:00');
+INSERT INTO `cart_items` (`id`, `cart_id`, `product_id`, `quantity`, `created_at`, `updated_at`) VALUES
+(1, 1, 3, 5, '2025-09-15 08:00:00', '2025-09-15 08:00:00'),
+(2, 1, 4, 2, '2025-09-15 08:15:00', '2025-09-15 08:15:00'),
+(3, 2, 1, 1, '2025-09-15 09:00:00', '2025-09-15 09:00:00'),
+(4, 2, 5, 1, '2025-09-15 09:10:00', '2025-09-15 09:10:00'),
+(5, 3, 3, 10, '2025-09-15 10:00:00', '2025-09-15 10:00:00');
 
 -- Insert Product Registrations (v7.1 structure - updated column names: product_code→proposed_product_code, name→proposed_product_name, price→unit_price, removed commission_rate, added approved_at)
 -- INSERT INTO `product_registrations` (`id`, `vendor_id`, `category_id`, `proposed_product_code`, `proposed_product_name`, `description`, `unit_price`, `energy_efficiency_rating`, `specifications`, `manual_urls`, `images`, `warranty_months`, `weight_kg`, `dimensions_cm`, `status`, `rejection_reason`, `approved_by`, `approved_at`, `created_at`) VALUES
@@ -156,10 +180,10 @@ INSERT INTO `chatbot_messages` (`id`, `conversation_id`, `message_type`, `messag
 (9, 3, 'user', 'Cảm ơn bạn! Tôi sẽ đặt mua ngay.', NULL, '2025-09-09 08:44:00'),
 (10, 3, 'bot', 'Rất vui được hỗ trợ bạn! Chúc bạn canh tác thành công. Nếu có thắc mắc gì khác, đừng ngần ngại liên hệ nhé!', NULL, '2025-09-09 08:44:30');
 
--- Insert Environmental Data (v7.1 structure - changed user_id to customer_id)
-INSERT INTO `environmental_data` (`id`, `farm_profile_id`, `customer_id`, `measurement_date`, `soil_ph`, `co2_footprint`, `soil_moisture_percentage`, `soil_type`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 9, '2025-09-09', 6.5, 120.50, 45.20, 'DatPhuSa', 'Đo lường sau mưa', '2025-09-09 06:00:00', '2025-09-09 06:00:00'),
-(2, 2, 10, '2025-09-09', 7.0, 85.30, 38.50, 'DatDoBazan', 'Kiểm tra hàng tuần', '2025-09-09 05:30:00', '2025-09-09 05:30:00');
+-- Insert Environmental Data (v7.2 structure - updated column names and added new environmental measurement fields)
+INSERT INTO `environmental_data` (`id`, `farm_profile_id`, `customer_id`, `measurement_start_date`, `measurement_end_date`, `sand_pct`, `silt_pct`, `clay_pct`, `phh2o`, `precipitation_sum`, `et0_fao_evapotranspiration`, `co2_footprint`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 1, 9, '2025-09-09', '2025-09-09', 35.50, 45.20, 19.30, 6.50, 85.40, 4.20, 120.50, 'Đo lường sau mưa', '2025-09-09 06:00:00', '2025-09-09 06:00:00'),
+(2, 2, 10, '2025-09-09', '2025-09-09', 28.70, 41.80, 29.50, 7.00, 92.60, 4.80, 85.30, 'Kiểm tra hàng tuần', '2025-09-09 05:30:00', '2025-09-09 05:30:00');
 
 -- Insert Fertilizers (added for completeness)
 INSERT INTO `fertilizers` (`id`, `environmental_data_id`, `organic_fertilizer`, `npk_fertilizer`, `urea_fertilizer`, `phosphate_fertilizer`, `created_at`, `updated_at`) VALUES
@@ -173,21 +197,24 @@ INSERT INTO `energy_usage` (`id`, `environmental_data_id`, `electricity_kwh`, `g
 
 -- Insert Requests (v7.1 structure - removed amount, admin_notes, rejection_reason columns, changed requester_id to user_id)
 INSERT INTO `requests` (`id`, `user_id`, `request_type`, `title`, `description`, `status`, `reply_notes`, `processed_by`, `processed_at`, `created_at`, `updated_at`) VALUES
-(1, 5, 'payout_request', 'Yêu cầu thanh toán hoa hồng tháng 9', 'Yêu cầu thanh toán hoa hồng từ bán hàng tháng 9', 'pending', NULL, NULL, NULL, '2025-09-09 07:00:00', '2025-09-09 07:00:00'),
+(1, 5, 'support_request', 'Yêu cầu thanh toán hoa hồng tháng 9', 'Yêu cầu thanh toán hoa hồng từ bán hàng tháng 9', 'pending', NULL, NULL, NULL, '2025-09-09 07:00:00', '2025-09-09 07:00:00'),
 (2, 7, 'refund_request', 'Yêu cầu hoàn tiền đơn hàng #1', 'Sản phẩm bị hỏng', 'in_review', 'Kiểm tra sản phẩm', NULL, NULL, '2025-09-09 08:15:00', '2025-09-09 08:15:00');
 
 -- Insert Orders (v7.1 structure - changed user_id to customer_id, shipping_address JSON to address_id FK)
 INSERT INTO `orders` (`id`, `customer_id`, `status`, `subtotal`, `tax_amount`, `shipping_fee`, `discount_amount`, `total_amount`, `address_id`, `shipping_method`, `tracking_number`, `notes`, `cancelled_reason`, `cancelled_at`, `confirmed_at`, `shipped_at`, `delivered_at`, `created_at`, `updated_at`) VALUES
-(1, 7, 'delivered', 25000000.00, 500000.00, 300000.00, 2500000.00, 23000000.00, 1, 'express', 'EXP20250908001', NULL, NULL, NULL, '2025-09-08 12:00:00', '2025-09-08 15:00:00', '2025-09-09 10:00:00', '2025-09-08 10:00:00', '2025-09-09 10:00:00'),
-(2, 8, 'shipped', 1716750.00, 0.00, 50000.00, 383250.00, 1483500.00, 2, 'standard', 'STD20250909001', NULL, NULL, NULL, '2025-09-09 10:00:00', NULL, NULL, '2025-09-09 09:00:00', '2025-09-09 10:00:00'),
-(3, 9, 'processing', 12000000.00, 800000.00, 200000.00, 960000.00, 11240000.00, 3, 'express', NULL, 'Cần hỗ trợ lắp đặt', NULL, NULL, NULL, NULL, NULL, '2025-09-09 11:00:00', '2025-09-09 11:30:00');
+(1, 7, 'delivered', 25000000.00, 500000.00, 300000.00, 2500000.00, 23000000.00, 6, 'express', 'EXP20250908001', NULL, NULL, NULL, '2025-09-08 12:00:00', '2025-09-08 15:00:00', '2025-09-09 10:00:00', '2025-09-08 10:00:00', '2025-09-09 10:00:00'),
+(2, 8, 'shipped', 1716750.00, 0.00, 50000.00, 383250.00, 1483500.00, 7, 'standard', 'STD20250909001', NULL, NULL, NULL, '2025-09-09 10:00:00', NULL, NULL, '2025-09-09 09:00:00', '2025-09-09 10:00:00'),
+(3, 9, 'processing', 12000000.00, 800000.00, 200000.00, 960000.00, 11240000.00, 4, 'express', NULL, 'Cần hỗ trợ lắp đặt', NULL, NULL, NULL, NULL, NULL, '2025-09-09 11:00:00', '2025-09-09 11:30:00'),
+(4, 10, 'confirmed', 8500000.00, 425000.00, 150000.00, 680000.00, 8395000.00, 5, 'standard', 'STD20250910001', 'Giao hàng trong giờ hành chính', NULL, NULL, '2025-09-10 09:00:00', NULL, NULL, '2025-09-10 08:00:00', '2025-09-10 09:00:00');
 
 -- Insert Order Details
 INSERT INTO `order_details` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`, `discount_amount`, `subtotal`, `created_at`) VALUES
 (1, 1, 1, 1, 25000000.00, 2500000.00, 22500000.00, '2025-09-08 10:00:00'),
 (2, 2, 3, 10, 150000.00, 0.00, 1500000.00, '2025-09-09 09:00:00'),
 (3, 2, 4, 3, 85000.00, 38250.00, 216750.00, '2025-09-09 09:00:00'),
-(4, 3, 5, 1, 12000000.00, 960000.00, 11040000.00, '2025-09-09 11:00:00');
+(4, 3, 5, 1, 12000000.00, 960000.00, 11040000.00, '2025-09-09 11:00:00'),
+(5, 4, 3, 50, 50000.00, 500000.00, 2500000.00, '2025-09-10 08:00:00'),
+(6, 4, 4, 80, 90000.00, 180000.00, 7200000.00, '2025-09-10 08:00:00');
 
 -- Insert Transactions (v7.1 structure - completely restructured)
 INSERT INTO `transactions` (`id`, `transaction_type`, `amount`, `currency`, `order_id`, `user_id`, `status`, `note`, `gateway_payment_id`, `created_by`, `processed_by`, `created_at`, `completed_at`, `updated_at`) VALUES

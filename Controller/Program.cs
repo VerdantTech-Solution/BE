@@ -14,6 +14,7 @@ using Infrastructure.Extensions;
 using BLL.DTO;
 using System.Net;
 using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +58,16 @@ builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 builder.Services.AddScoped<IRepository<VendorProfile>, Repository<VendorProfile>>();
 builder.Services.AddScoped<IRepository<FarmProfile>, Repository<FarmProfile>>();
 builder.Services.AddScoped<IRepository<Address>, Repository<Address>>();
-// builder.Services.AddScoped<IRepository<SupportedBank>, Repository<SupportedBank>>();
+builder.Services.AddScoped<IRepository<UserAddress>, Repository<UserAddress>>();
+builder.Services.AddScoped<IRepository<Fertilizer>, Repository<Fertilizer>>();
+builder.Services.AddScoped<IRepository<EnergyUsage>, Repository<EnergyUsage>>();
+builder.Services.AddScoped<IRepository<EnvironmentalDatum>, Repository<EnvironmentalDatum>>();
+builder.Services.AddScoped<IRepository<ProductCategory>, Repository<ProductCategory>>();
+builder.Services.AddScoped<IRepository<Product>, Repository<Product>>();
+builder.Services.AddScoped<IRepository<Cart>, Repository<Cart>>();
+builder.Services.AddScoped<IRepository<CartItem>, Repository<CartItem>>();
+builder.Services.AddScoped<IRepository<Order>, Repository<Order>>();
+builder.Services.AddScoped<IRepository<OrderDetail>, Repository<OrderDetail>>();
 builder.Services.AddScoped<IRepository<ForumCategory>, Repository<ForumCategory>>();
 builder.Services.AddScoped<IRepository<ForumPost>, Repository<ForumPost>>();
 
@@ -65,13 +75,27 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFarmProfileRepository, FarmProfileRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-// builder.Services.AddScoped<ISupportedBanksRepository, SupportedBanksRepository>();
+builder.Services.AddScoped<IFertilizerRepository, FertilizerRepository>();
+builder.Services.AddScoped<IEnergyUsageRepository, EnergyUsageRepository>();
+builder.Services.AddScoped<IEnvironmentalDataRepository, EnvironmentalDataRepository>();
+builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
 builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFarmProfileService, FarmProfileService>();
+builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddScoped<ICO2Service, CO2Service>();
+builder.Services.AddScoped<ICourierService, CourierService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
 builder.Services.AddScoped<IForumPostService,ForumPostService>();
 
@@ -155,7 +179,11 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

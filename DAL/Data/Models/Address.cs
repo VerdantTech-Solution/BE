@@ -26,6 +26,18 @@ public class Address
     [StringLength(100)]
     public string? Commune { get; set; }
 
+    [Column("province_code")]
+    [StringLength(20)]
+    public string? ProvinceCode { get; set; }
+
+    [Column("district_code")]
+    [StringLength(20)]
+    public string? DistrictCode { get; set; }
+
+    [Column("commune_code")]
+    [StringLength(20)]
+    public string? CommuneCode { get; set; }
+
     [Column("latitude")]
     [Precision(10, 8)]
     public decimal? Latitude { get; set; }
@@ -41,7 +53,7 @@ public class Address
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<UserAddress> UserAddresses { get; set; } = new List<UserAddress>();
     public virtual ICollection<FarmProfile> FarmProfiles { get; set; } = new List<FarmProfile>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

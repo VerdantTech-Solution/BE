@@ -1,3 +1,5 @@
+using BLL.DTO.Address;
+
 namespace BLL.DTO.User;
 
 public class UserResponseDTO
@@ -16,9 +18,9 @@ public class UserResponseDTO
 
     public bool IsVerified { get; set; } = false;
 
-    public string? VerificationToken { get; set; }
+    // public string? VerificationToken { get; set; }
 
-    public DateTime? VerificationSentAt { get; set; }
+    // public DateTime? VerificationSentAt { get; set; }
 
     public string? AvatarUrl { get; set; }
 
@@ -31,4 +33,7 @@ public class UserResponseDTO
     public DateTime UpdatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    // Danh sách địa chỉ của người dùng
+    public List<AddressResponseDTO> Addresses { get; set; } = new List<AddressResponseDTO>();
 }

@@ -1,8 +1,12 @@
 -- Lược đồ Cơ sở Dữ liệu VerdantTech Solutions
 -- Nền tảng Thiết bị Nông nghiệp Xanh Tích hợp AI cho Trồng Rau Bền vững
--- Phiên bản: 7.1
+-- Phiên bản: 8.0
 -- Engine: InnoDB (hỗ trợ giao dịch)
 -- Bộ ký tự: utf8mb4 (hỗ trợ đa ngôn ngữ)
+
+-- Set timezone to UTC for all database operations
+SET time_zone = '+00:00';
+SET GLOBAL time_zone = '+00:00';
 
 -- Tạo cơ sở dữ liệu
 CREATE DATABASE IF NOT EXISTS verdanttech_db
@@ -22,12 +26,13 @@ CREATE TABLE addresses (
     province VARCHAR(100),
     district VARCHAR(100),
     commune VARCHAR(100),
+    province_code VARCHAR(20) NULL COMMENT 'Mã tỉnh/thành phố theo hệ thống GoShip',
+    district_code VARCHAR(20) NULL COMMENT 'Mã quận/huyện theo hệ thống GoShip',
+    commune_code VARCHAR(20) NULL COMMENT 'Mã phường/xã theo hệ thống GoShip',
     latitude DECIMAL(10,8) NULL COMMENT 'Vĩ độ',
     longitude DECIMAL(11,8) NULL COMMENT 'Kinh độ',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_province_district (province, district)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng địa chỉ chung cho các thực thể';
 
 CREATE TABLE users (
@@ -38,7 +43,6 @@ CREATE TABLE users (
     full_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     tax_code VARCHAR(100) UNIQUE,
-    address_id BIGINT UNSIGNED NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     verification_token VARCHAR(255),
     verification_sent_at TIMESTAMP NULL,
@@ -51,13 +55,27 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     
-    FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE RESTRICT,
     INDEX idx_email (email),
     INDEX idx_role (role),
     INDEX idx_status (status),
-    INDEX idx_address (address_id),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng xác thực và hồ sơ người dùng cơ bản';
+
+-- Bảng trung gian quản lý nhiều địa chỉ cho người dùng
+CREATE TABLE user_addresses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    address_id BIGINT UNSIGNED NOT NULL,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE RESTRICT,
+    INDEX idx_user_id (user_id),
+    INDEX idx_address_id (address_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng trung gian quản lý nhiều địa chỉ cho người dùng';
 
 -- Hồ sơ nhà cung cấp cho người bán
 CREATE TABLE vendor_profiles (
@@ -137,24 +155,28 @@ CREATE TABLE environmental_data (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     farm_profile_id BIGINT UNSIGNED NOT NULL,
     customer_id BIGINT UNSIGNED NOT NULL,
-    measurement_date DATE NOT NULL,
-    soil_ph DECIMAL(3,1) CHECK (soil_ph >= 0 AND soil_ph <= 14),
+    measurement_start_date DATE NOT NULL COMMENT 'Ngày bắt đầu ghi nhận dữ liệu',
+    measurement_end_date DATE NOT NULL COMMENT 'Ngày kết thúc ghi nhận dữ liệu',
+    sand_pct   DECIMAL(5,2) NULL COMMENT 'Sand (%) 0–30 cm',
+    silt_pct   DECIMAL(5,2) NULL COMMENT 'Silt (%) 0–30 cm',
+    clay_pct   DECIMAL(5,2) NULL COMMENT 'Clay (%) 0–30 cm',
+    phh2o      DECIMAL(4,2) NULL CHECK (phh2o >= 0 AND phh2o <= 14) COMMENT 'pH (H2O) 0–30 cm',    
+    precipitation_sum DECIMAL(7,2) NULL COMMENT 'Tổng lượng mưa (mm)',
+    et0_fao_evapotranspiration DECIMAL(7,2) NULL COMMENT 'Lượng thoát hơi nước/bốc hơi(mm)',
     co2_footprint DECIMAL(10,2) COMMENT 'Lượng khí thải CO2 tính bằng kg',
-    soil_moisture_percentage DECIMAL(5,2),
-    soil_type ENUM('DatPhuSa', 'DatDoBazan', 'DatFeralit', 'DatThit', 'DatSet', 'DatCat') NOT NULL,
     notes VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (farm_profile_id) REFERENCES farm_profiles(id) ON DELETE RESTRICT,
     FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE RESTRICT,
-    INDEX idx_farm_date (farm_profile_id, measurement_date),
-    INDEX idx_customer (customer_id)
+    INDEX idx_farm_dates (farm_profile_id, measurement_start_date, measurement_end_date),
+    INDEX idx_farm_profile (farm_profile_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Dữ liệu môi trường do nông dân nhập thủ công';
 
 -- Theo dõi việc sử dụng phân bón
 CREATE TABLE fertilizers (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    environmental_data_id BIGINT UNSIGNED NOT NULL,
+    environmental_data_id BIGINT UNSIGNED NOT NULL UNIQUE,
     organic_fertilizer DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Phân hữu cơ (kg)',
     npk_fertilizer DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Phân NPK tổng hợp (kg)',
     urea_fertilizer DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Phân urê (kg)', 
@@ -163,13 +185,13 @@ CREATE TABLE fertilizers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (environmental_data_id) REFERENCES environmental_data(id) ON DELETE RESTRICT,
-    INDEX idx_environmental_data (environmental_data_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Dữ liệu sử dụng phân bón để tính toán lượng khí thải CO2';
+    UNIQUE KEY uk_fertilizers_environmental_data (environmental_data_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Dữ liệu sử dụng phân bón để tính toán lượng khí thải CO2 (quan hệ 1-1 với environmental_data)';
 
 -- Theo dõi việc sử dụng năng lượng
 CREATE TABLE energy_usage (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    environmental_data_id BIGINT UNSIGNED NOT NULL,
+    environmental_data_id BIGINT UNSIGNED NOT NULL UNIQUE,
     electricity_kwh DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Điện tiêu thụ (kWh)',
     gasoline_liters DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Xăng sử dụng (lít)',
     diesel_liters DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Dầu diesel sử dụng (lít)',
@@ -177,8 +199,8 @@ CREATE TABLE energy_usage (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  
 
     FOREIGN KEY (environmental_data_id) REFERENCES environmental_data(id) ON DELETE RESTRICT,
-    INDEX idx_environmental_data (environmental_data_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Dữ liệu sử dụng năng lượng để tính toán lượng khí thải CO2';
+    UNIQUE KEY uk_energy_usage_environmental_data (environmental_data_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Dữ liệu sử dụng năng lượng để tính toán lượng khí thải CO2 (quan hệ 1-1 với environmental_data)';
 
 -- =====================================================
 -- CÁC BẢNG CHATBOT AI
@@ -389,7 +411,7 @@ CREATE TABLE product_certificates (
 -- Bảng giỏ hàng
 CREATE TABLE cart (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id BIGINT UNSIGNED NOT NULL,
+    customer_id BIGINT UNSIGNED NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -402,14 +424,14 @@ CREATE TABLE cart_items (
     cart_id BIGINT UNSIGNED NOT NULL,
     product_id BIGINT UNSIGNED NOT NULL,
     quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
-    unit_price DECIMAL(12,2) NOT NULL COMMENT 'đơn giá',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (cart_id) REFERENCES cart(id) ON DELETE RESTRICT,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
     UNIQUE KEY unique_cart_product (cart_id, product_id),
-    INDEX idx_cart (cart_id)
+    INDEX idx_cart (cart_id),
+    INDEX idx_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cart items for customer shopping carts';
 
 -- Bảng đơn hàng
@@ -559,7 +581,7 @@ CREATE TABLE export_inventory (
 CREATE TABLE requests (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
-    request_type ENUM('refund_request', 'payout_request', 'support_request', 'vendor_register', 'product_registration', 'product_certification') NOT NULL,
+    request_type ENUM('refund_request', 'support_request') NOT NULL,
     title VARCHAR(255) NOT NULL COMMENT 'Tiêu đề/chủ đề yêu cầu',
     description TEXT NOT NULL COMMENT 'Mô tả chi tiết về yêu cầu',
     status ENUM('pending', 'in_review', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending',
@@ -650,182 +672,32 @@ CREATE TABLE cashouts (
     INDEX idx_transaction (transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='bảng rút tiền cho vendor';
 
--- VerdantTech DB — So sánh thay đổi v7 → v7.1
--- Ngày so sánh: 2025-09-19 (GMT+7)
--- Nguồn: verdanttech_schema_v7.sql & verdanttech_schema_v7.1.sql
+-- =====================================================
+-- TỔNG QUAN THAY ĐỔI v8.0 (từ v7.2)
+-- =====================================================
 
--- I) TỔNG QUAN THAY ĐỔI
--- • Thêm bảng địa chỉ chung `addresses`; thay thế các cột địa chỉ rải rác bằng khoá ngoại `address_id` ở `users`, `farm_profiles`, `orders`.
--- • Chuẩn hoá vai trò người mua: đổi `user_id` → `customer_id` tại nhiều bảng (`orders`, `cart`, `chatbot_conversations`, `environmental_data`).
--- • 20 khoá ngoại chuyển từ `ON DELETE CASCADE` → `ON DELETE RESTRICT` để tránh xoá dây chuyền ngoài ý muốn.
--- • Chuẩn hoá thực thể Vendor: chuyển tham chiếu từ `vendor_profiles` sang `users` ở một loạt bảng (ví dụ: `products`, `product_registrations`, `vendor_bank_accounts`, `vendor_certificates`, `cashouts`, `wallets`).
--- • Sản phẩm: đổi `name`→`product_name`, `price`→`unit_price`; bỏ `cost_price`, `total_reviews`; cập nhật chỉ mục FULLTEXT trên (`product_name`,`description`).
--- • Đơn hàng/vận chuyển: thay `shipping_address` (JSON) bằng `address_id` FK; đồng nhất chỉ mục `idx_created`.
--- • Thanh toán/tài chính: đơn giản hoá `payments` (loại `transaction_id`, các trường refund/paid/failed tách khỏi), tái cấu trúc `transactions` (bỏ trường ví & metadata cũ, thêm `gateway_payment_id`, `note`, ràng buộc với `user_id`/`order_id`), bổ sung liên kết chéo ở `wallets`.
--- • Cộng đồng: chuẩn tên cột FK (`category_id`→`forum_category_id`, `post_id`→`forum_post_id`) và tinh gọn index; toàn bộ FK đổi sang RESTRICT.
--- • Tồn kho: thêm/đổi mô tả, cập nhật `movement_type` (thêm 'return to vendor'), thêm `updated_at` cho `export_inventory`.
+-- I) CẢI TIẾN BẢNG ADDRESSES
+-- • Thêm 3 cột mới hỗ trợ tích hợp GoShip API:
+--   - province_code VARCHAR(20) NULL - Mã tỉnh/thành phố theo hệ thống GoShip
+--   - district_code VARCHAR(20) NULL - Mã quận/huyện theo hệ thống GoShip  
+--   - commune_code VARCHAR(20) NULL - Mã phường/xã theo hệ thống GoShip
+-- • Loại bỏ tất cả index không cần thiết, chỉ giữ lại PRIMARY KEY (id)
+-- • Removed indexes: idx_province_district, idx_province_code, idx_district_code, idx_commune_code
 
--- II) BẢNG MỚI / BỊ LOẠI BỎ
--- • Bảng mới: `addresses` (lưu địa chỉ dùng chung).
--- • Bảng bị loại bỏ: Không có (v7.1 giữ toàn bộ bảng của v7, chỉ nâng cấp cấu trúc).
+-- II) CẬP NHẬT SEEDER DATA
+-- • Thêm địa chỉ FPT University HCM làm địa chỉ ID=1 cho admin
+-- • Shift tất cả address ID hiện tại +1
+-- • Cập nhật tất cả reference trong user_addresses, farm_profiles, orders
+-- • Áp dụng dữ liệu địa chỉ thật từ GoShip API cho các tỉnh thành Việt Nam
 
--- III) THAY ĐỔI CHI TIẾT THEO BẢNG
+-- III) TƯƠNG THÍCH VỚI GOSHIP API
+-- • province_code tương ứng với "id" trong response cities API
+-- • district_code tương ứng với "id" trong response districts API  
+-- • commune_code tương ứng với "id" trong response wards API
+-- • Hỗ trợ đầy đủ hệ thống mã địa chỉ của Vietnam shipping logistics
 
--- A. addresses  — MỚI
---    - Cột: id, location_address, province, district, commune, latitude, longitude, created_at, updated_at
---    - Index: INDEX idx_province_district (province, district)
-
--- B. Người dùng & Vendor
---    • users
---      - Thêm cột: address_id, tax_code
---      - Thêm FK: (address_id) → addresses(id) ON DELETE RESTRICT
---      - Thêm Index: INDEX idx_address (address_id)
---    • vendor_profiles
---      - Xoá cột: company_address, province, district, commune
---      - Thêm/Gỡ FK: (user_id) đổi ON DELETE CASCADE → RESTRICT
---      - Gỡ Index: INDEX idx_slug (slug)
---    • vendor_bank_accounts
---      - Thêm/Gỡ FK: (vendor_id) đổi tham chiếu vendor_profiles(id) → users(id) và đổi CASCADE → RESTRICT
---      - Gỡ Index: INDEX idx_vendor_default (vendor_id, is_default)
---    • vendor_certificates
---      - Thay đổi FK: (vendor_id) tham chiếu vendor_profiles(id) (CASCADE) → users(id) (RESTRICT)
---      - Giữ/Chuẩn hoá FK verified_by → users(id) ON DELETE RESTRICT
---    • wallets
---      - Thêm cột: last_transaction_id, last_updated_by
---      - Xoá cột: pending_withdraw
---      - Đổi FK vendor_id: vendor_profiles(id) (CASCADE) → users(id) (RESTRICT)
---      - Thêm FK: last_transaction_id → transactions(id) RESTRICT; last_updated_by → users(id) RESTRICT
---      - Thêm Index: INDEX idx_vendor (vendor_id)
-
--- C. Trang trại & Môi trường
---    • farm_profiles
---      - Thêm cột: address_id
---      - Xoá cột: location_address, province, district, commune, latitude, longitude
---      - Đổi FK user_id: CASCADE → RESTRICT
---      - Thêm FK: address_id → addresses(id) RESTRICT
---      - Thêm Index: idx_address, idx_user
---      - Gỡ Index: idx_location, idx_farm_size, idx_status
---    • environmental_data
---      - Đổi tên cột: 'user_id' → 'customer_id'
---      - Đổi FK: (farm_profile_id) CASCADE → RESTRICT; (customer_id) RESTRICT (thay cho user_id trước đây)
---      - Thêm Index: idx_customer (customer_id)
---      - Gỡ Index: idx_user, idx_date, idx_soil_type
---    • fertilizers
---      - Đổi FK: (environmental_data_id) CASCADE → RESTRICT
---    • energy_usage
---      - Đổi FK: (environmental_data_id) CASCADE → RESTRICT
-
--- D. Chatbot
---    • chatbot_conversations
---      - Đổi tên cột: 'user_id' → 'customer_id'
---      - Đổi FK: (customer_id) RESTRICT (thay cho CASCADE trước đây)
---      - Thêm Index: idx_customer (customer_id), idx_session (session_id)
---      - Gỡ Index: idx_user_session, idx_active, idx_started
---    • chatbot_messages
---      - Đổi FK: (conversation_id) CASCADE → RESTRICT
---      - Gỡ Index: idx_type, idx_created
-
--- E. Cộng đồng
---    • forum_categories
---      - Không thay đổi cột; không đổi FK; không đổi index
---    • forum_posts
---      - Đổi tên cột: 'category_id' → 'forum_category_id'
---      - Xoá cột: last_activity_at
---      - Đổi FK: forum_category_id → forum_categories(id) RESTRICT; user_id → users(id) RESTRICT
---      - Thêm Index: idx_category (forum_category_id), idx_status (status), idx_created (created_at)
---      - Gỡ Index: idx_category (category_id), idx_status_pinned, idx_last_activity
---    • forum_comments
---      - Đổi tên cột: 'post_id' → 'forum_post_id'
---      - Đổi FK: forum_post_id → forum_posts(id) RESTRICT; user_id → users(id) RESTRICT; gỡ FK self parent_id (CASCADE)
---      - Thêm Index: idx_post (forum_post_id)
---      - Gỡ Index: idx_parent, idx_post (post_id)
-
--- F. Sản phẩm & Đăng ký
---    • product_categories
---      - Đổi FK self-referencing: parent_id ON DELETE CASCADE → RESTRICT
---      - Gỡ Index: idx_active (is_active)
---    • products
---      - Đổi tên cột: 'name' → 'product_name', 'price' → 'unit_price'
---      - Xoá cột: cost_price, total_reviews
---      - Sửa cột: commission_rate (cập nhật comment)
---      - Đổi FK: vendor_id → users(id) RESTRICT (trước kia là vendor_profiles)
---      - Thêm Index: idx_vendor (vendor_id)
---      - Đổi FULLTEXT: (name, description) → (product_name, description)
---      - Gỡ Index: idx_price, idx_active
---    • product_certificates
---      - Đổi FK: product_id CASCADE → RESTRICT
---      - Gỡ Index: idx_uploaded (uploaded_at)
---    • product_registrations
---      - Đổi tên cột: 'product_code' → 'proposed_product_code', 'name' → 'proposed_product_name', 'price' → 'unit_price'
---      - Thêm cột: updated_at, approved_at
---      - Xoá cột: commission_rate, reviewed_at
---      - Đổi FK: vendor_id → users(id) RESTRICT (trước kia là vendor_profiles)
---      - Thêm/Gỡ Index: thêm idx_status (status), idx_vendor (vendor_id); gỡ idx_vendor_status, idx_created
---    • product_reviews
---      - Đổi FK: customer_id, product_id, order_id từ CASCADE → RESTRICT
---      - Thêm/Gỡ Index: thêm idx_product (product_id); gỡ idx_product_rating, idx_created_at
-
--- G. Giỏ hàng & Đơn hàng & Thanh toán
---    • cart
---      - Đổi tên cột: 'user_id' → 'customer_id'
---      - Đổi FK: (customer_id) RESTRICT (thay cho CASCADE)
---      - Đổi Index: idx_user → idx_customer
---    • cart_items
---      - Sửa cột: unit_price (cập nhật comment: “đơn giá”)
---      - Đổi FK: (cart_id), (product_id) từ CASCADE → RESTRICT
---      - Gỡ Index: idx_product, idx_created_at (giữ idx_cart)
---    • orders
---      - Đổi tên cột: 'user_id' → 'customer_id'
---      - Xoá cột: shipping_address (JSON)
---      - Thêm cột: address_id
---      - Thêm FK: (address_id) → addresses(id) RESTRICT; (customer_id) → users(id) RESTRICT
---      - Thêm/Gỡ Index: thêm idx_address, idx_customer, idx_created; gỡ idx_created_at
---    • order_details
---      - Đổi FK: (order_id) CASCADE → RESTRICT; (product_id) giữ RESTRICT
---      - Gỡ Index: idx_product (chỉ còn idx_order)
---    • payments
---      - Thêm cột: gateway_payment_id
---      - Xoá cột: transaction_id, refund_amount, refund_reason, refunded_at, paid_at, failed_at, gateway_transaction_id
---      - Gỡ FK: (transaction_id) → transactions(id)
---      - Thêm/Gỡ Index: thêm idx_gateway_payment; gỡ idx_transaction, idx_gateway_transaction, idx_payment_method
-
--- H. Tồn kho
---    • batch_inventory
---      - Đổi tên cột: 'vendor_profile_id' → 'vendor_id'
---      - Sửa cột: quantity (thêm comment)
---      - Đổi FK: product_id từ CASCADE → RESTRICT; vendor_id → users(id) RESTRICT (thay vì vendor_profiles)
---      - Thêm/Gỡ Index: thêm idx_vendor, idx_created; gỡ idx_vendor(vendor_profile_id), idx_expiry_date
---    • export_inventory
---      - Thêm cột: updated_at
---      - Xoá cột: unit_sale_price
---      - Sửa cột: movement_type từ ENUM('sale','return','damage','loss','adjustment') thành ENUM('sale','return to vendor','damage','loss','adjustment')
---      - Sửa cột: quantity, balance_after, created_by (cập nhật chú thích)
---      - Đổi FK: product_id từ CASCADE → RESTRICT; thêm created_by → users(id) RESTRICT
---      - Gỡ Index: idx_movement_type
-
--- I. Yêu cầu & Giao dịch
---    • requests
---      - Thêm cột: reply_notes
---      - Xoá cột: admin_notes, amount, rejection_reason
---      - Sửa cột: user_id (NULL → NOT NULL)
---      - Sửa ENUM request_type: thêm 'product_registration', 'product_certification'; giữ các loại khác
---      - Thêm FK: processed_by → users(id) RESTRICT; user_id → users(id) RESTRICT (thay vì CASCADE)
---      - Thêm/Gỡ Index: thêm idx_user; gỡ idx_created_at
---    • transactions
---      - Thêm cột: user_id, order_id, gateway_payment_id, note, created_by (giữ), status (giữ), …
---      - Xoá cột: customer_id, vendor_id, wallet_id, balance_before, balance_after, description, metadata, reference_type, reference_id
---      - Đổi/Gỡ FK: gỡ các FK tới vendor_profiles, wallets; thêm FK user_id → users(id) RESTRICT
---      - Thêm/Gỡ Index: thêm idx_user, idx_gateway_payment, idx_created; gỡ idx_customer, idx_vendor, idx_wallet, idx_completed_at, idx_reference, idx_amount, idx_created_at (đổi tên), …
---    • cashouts
---      - Thêm cột: bank_account_id, reason
---      - Xoá cột: bank_code, bank_account_number, bank_account_holder, cashout_type
---      - Đổi FK: vendor_id → users(id) RESTRICT (trước kia vendor_profiles); thêm bank_account_id → vendor_bank_accounts(id) RESTRICT
---      - Thêm/Gỡ Index: thêm idx_transaction; gỡ idx_type
-
--- IV) TỔNG HỢP CHÍNH SÁCH XOÁ (FK)
--- • Tổng số FK chuyển từ CASCADE → RESTRICT: 20 (chi tiết liệt kê trong từng bảng ở mục III).
-
--- V) GHI CHÚ TƯƠNG THÍCH
--- • Khi nâng cấp dữ liệu: cần tạo `addresses` và migrate các cột địa chỉ cũ sang `addresses`, cập nhật các FK `address_id`.
--- • Cập nhật mã dịch vụ sử dụng các cột đổi tên (ví dụ `products.name`→`products.product_name`, `orders.user_id`→`orders.customer_id`, ...).
--- • Kiểm tra logic xoá: với RESTRICT, cần xoá theo thứ tự an toàn hoặc chuyển sang trạng thái 'inactive' thay vì xoá cứng.
+-- IV) CHANGES IN DAL LAYER
+-- • Updated Address model: Added ProvinceCode, DistrictCode, CommuneCode properties
+-- • Updated AddressConfiguration: Added configurations for new code fields
+-- • Removed unnecessary index configurations in Entity Framework
+-- • Maintained backward compatibility with existing location fields

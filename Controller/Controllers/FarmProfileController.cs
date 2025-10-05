@@ -26,7 +26,7 @@ namespace Controller.Controllers
         /// <returns>Thông tin hồ sơ trang trại đã tạo</returns>
         [HttpPost]
         [EndpointSummary("Create Farm Profile")]
-        [EndpointDescription("Tạo hồ sơ trang trại mới cho người dùng hiện tại")]
+        [EndpointDescription("Tạo hồ sơ trang trại mới cho người dùng hiện tại. Id chủ trang trại sẽ được lấy từ token đăng nhập.")]
         public async Task<ActionResult<APIResponse>> CreateFarmProfile([FromBody] FarmProfileCreateDto dto)
         {
             var validationResult = ValidateModel();
@@ -96,7 +96,7 @@ namespace Controller.Controllers
         /// <param name="id">ID của hồ sơ trang trại</param>
         /// <param name="dto">Thông tin hồ sơ trang trại cần cập nhật</param>
         /// <returns>Thông tin hồ sơ trang trại đã cập nhật</returns>
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         [EndpointSummary("Update Farm Profile")]
         [EndpointDescription("Cập nhật thông tin hồ sơ trang trại.")]
         public async Task<ActionResult<APIResponse>> UpdateFarmProfile([FromRoute] ulong id, [FromBody] FarmProfileUpdateDTO dto)

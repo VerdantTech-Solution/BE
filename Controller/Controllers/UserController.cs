@@ -45,6 +45,32 @@ public class UserController : BaseController
     }
 
     /// <summary>
+    /// Tạo tài khoản nhân viên mới
+    /// </summary>
+    /// <param name="dto">Thông tin nhân viên cần tạo</param>
+    /// <returns>Thông tin nhân viên đã tạo</returns>
+    [HttpPost("staff")]
+    [Authorize(Roles = "Admin")]
+    [EndpointSummary("Create New Staff Account")]
+    [EndpointDescription("Tạo tài khoản nhân viên mới với mật khẩu tự động được tạo và gửi qua email. " +
+                         "Chỉ Admin mới có quyền thực hiện. Nhân viên sẽ nhận được email chứa thông tin đăng nhập.")]
+    public async Task<ActionResult<APIResponse>> CreateStaff([FromBody] StaffCreateDTO dto)
+    {
+        var validationResult = ValidateModel();
+        if (validationResult != null) return validationResult;
+
+        try
+        {
+            var staff = await _userService.CreateStaffAsync(dto, GetCancellationToken());
+            return SuccessResponse(staff, HttpStatusCode.Created);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>
     /// Lấy thông tin người dùng theo ID
     /// </summary>
     /// <param name="id">ID của người dùng</param>
@@ -107,7 +133,7 @@ public class UserController : BaseController
     /// <param name="id">ID của người dùng</param>
     /// <param name="dto">Thông tin người dùng cần cập nhật</param>
     /// <returns>Thông tin người dùng đã cập nhật</returns>
-    [HttpPut("{id}")]
+    [HttpPatch("{id}")]
     [Authorize]
     [EndpointSummary("Update User")]
     [EndpointDescription("Cập nhật thông tin người dùng bao gồm cả status. Status có thể là: Active, Inactive, Suspended, Deleted")]
@@ -118,6 +144,58 @@ public class UserController : BaseController
         try
         {
             var user = await _userService.UpdateUserAsync(id, dto, GetCancellationToken());
+            return SuccessResponse(user);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Tạo địa chỉ mới cho người dùng
+    /// </summary>
+    /// <param name="userId">ID của người dùng</param>
+    /// <param name="dto">Thông tin địa chỉ cần tạo</param>
+    /// <returns>Thông tin người dùng đã cập nhật với địa chỉ mới</returns>
+    [HttpPost("{userId}/address")]
+    [Authorize]
+    [EndpointSummary("Create User Address")]
+    [EndpointDescription("Tạo địa chỉ mới cho người dùng theo ID")]
+    public async Task<ActionResult<APIResponse>> CreateUserAddress(ulong userId, [FromBody] UserAddressCreateDTO dto)
+    {
+        var validationResult = ValidateModel();
+        if (validationResult != null) return validationResult;
+
+        try
+        {
+            var user = await _userService.CreateUserAddressAsync(userId, dto, GetCancellationToken());
+            return SuccessResponse(user, HttpStatusCode.Created);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Cập nhật địa chỉ người dùng theo ID địa chỉ
+    /// </summary>
+    /// <param name="addressId">ID của địa chỉ</param>
+    /// <param name="dto">Thông tin địa chỉ cần cập nhật</param>
+    /// <returns>Thông tin người dùng đã cập nhật với địa chỉ mới</returns>
+    [HttpPatch("address/{addressId}")]
+    [Authorize]
+    [EndpointSummary("Update User Address")]
+    [EndpointDescription("Cập nhật địa chỉ người dùng theo ID địa chỉ")]
+    public async Task<ActionResult<APIResponse>> UpdateUserAddressByAddressId(ulong addressId, [FromBody] UserAddressUpdateDTO dto)
+    {
+        var validationResult = ValidateModel();
+        if (validationResult != null) return validationResult;
+
+        try
+        {
+            var user = await _userService.UpdateUserAddressByAddressIdAsync(addressId, dto, GetCancellationToken());
             return SuccessResponse(user);
         }
         catch (Exception ex)
