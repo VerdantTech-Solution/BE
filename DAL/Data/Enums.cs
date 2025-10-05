@@ -80,7 +80,7 @@ public enum ForumPostStatus
 public enum ForumCommentStatus
 {
     Visible,
-    Moderated,
+    Hidden,
     Deleted
 }
 
