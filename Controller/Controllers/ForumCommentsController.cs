@@ -1,176 +1,267 @@
-﻿using System.Security.Claims;
+﻿using System.Net;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BLL.Services.Interfaces;
-using BLL.DTO.ForumComment;
-using BLL.DTO;
-using DAL.Data;
 
-namespace API.Controllers
+using BLL.Interfaces;                 // IForumCommentService (đổi nếu namespace khác)
+using BLL.DTO;                       // APIResponse, PagedResponse<T>
+using BLL.DTO.ForumComment;          // các DTO comment
+using DAL.Data.Models;               // ForumCommentStatus
+
+namespace Controller.Controllers;
+
+[Route("api/[controller]")]
+public class ForumCommentsController : BaseController
 {
-    [ApiController]
-    [Route("api/forum-comments")]
-    public class ForumCommentsController : ControllerBase
+    private readonly IForumCommentService _service;
+
+    public ForumCommentsController(IForumCommentService service)
     {
-        private readonly IForumCommentService _service;
+        _service = service;
+    }
 
-        public ForumCommentsController(IForumCommentService service)
-        {
-            _service = service;
-        }
+    // Helpers
+    private (ulong? userId, bool isModerator) GetUserContext()
+    {
+        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? User.FindFirstValue("sub")
+                   ?? User.FindFirstValue("uid");
+        ulong? uid = null; if (ulong.TryParse(idStr, out var v)) uid = v;
 
-        // Helper: đọc userId & role từ Claims
-        private (ulong? userId, bool isModerator) GetUserContext()
-        {
-            // Tùy hệ thống auth, đổi NameIdentifier/"sub"/"uid" cho đúng
-            var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                       ?? User.FindFirstValue("sub")
-                       ?? User.FindFirstValue("uid");
+        // tùy hệ thống role: Admin/Staff là moderator
+        var isMod = User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("Moderator");
+        return (uid, isMod);
+    }
 
-            ulong? uid = null;
-            if (ulong.TryParse(idStr, out var parsed)) uid = parsed;
+    private static void ClampPaging(ref int page, ref int pageSize, int max = 200)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > max) pageSize = max;
+    }
 
-            var isMod = User.IsInRole("Admin") || User.IsInRole("Moderator");
-            return (uid, isMod);
-        }
+    /// <summary>Tạo bình luận mới</summary>
+    [HttpPost]
+    [Authorize] // cần đăng nhập để tạo bình luận
+    [EndpointSummary("Create Forum Comment")]
+    [EndpointDescription("Tạo bình luận mới. parentId = null nếu là bình luận gốc. UserId lấy từ token.")]
+    public async Task<ActionResult<APIResponse>> Create([FromBody] ForumCommentCreateDTO dto)
+    {
+        var validation = ValidateModel();
+        if (validation != null) return validation;
 
-        // =========== Create ===========
-        [HttpPost]
-        // [Authorize] // mở nếu cần bảo vệ
-        public async Task<ActionResult<ForumCommentResponseDTO>> Create(
-            [FromBody] ForumCommentCreateDTO dto,
-            CancellationToken ct)
+        try
         {
             var (userId, _) = GetUserContext();
-            if (userId is null) return Unauthorized();
+            if (userId is null) return ErrorResponse("Unauthorized", HttpStatusCode.Unauthorized);
 
-            var res = await _service.CreateAsync(dto, userId.Value, ct);
-            return CreatedAtAction(nameof(GetById), new { id = res.Id }, res);
+            var created = await _service.CreateAsync(dto, userId.Value, GetCancellationToken());
+            return SuccessResponse(created, HttpStatusCode.Created);
         }
-
-        // =========== Read ===========
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ForumCommentResponseDTO>> GetById(
-            [FromRoute] ulong id,
-            [FromQuery] bool deep = false,
-            CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var res = await _service.GetByIdAsync(id, deep, ct);
-            if (res is null) return NotFound();
-            return Ok(res);
+            return HandleException(ex);
         }
+    }
 
-        // Lấy comment theo Post (paging)
-        [HttpGet("by-post/{postId}")]
-        public async Task<ActionResult<PagedResponse<ForumCommentResponseDTO>>> GetByPost(
-            [FromRoute] ulong postId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            [FromQuery] bool deep = false,
-            CancellationToken ct = default)
+    /// <summary>Lấy chi tiết 1 bình luận theo Id</summary>
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    [EndpointSummary("Get Comment By Id")]
+    [EndpointDescription("deep=false: trả kèm children 1 cấp; deep=true: trả nguyên thread nhiều cấp.")]
+    public async Task<ActionResult<APIResponse>> GetById([FromRoute] ulong id, [FromQuery] bool deep = false)
+    {
+        try
         {
-            var res = await _service.GetByPostAsync(postId, page, pageSize, deep, ct);
-            return Ok(res);
+            var data = await _service.GetByIdAsync(id, deep, GetCancellationToken());
+            if (data == null) return ErrorResponse($"Không tìm thấy bình luận id={id}", HttpStatusCode.NotFound);
+            return SuccessResponse(data);
         }
-
-        // Children trực tiếp của 1 comment
-        [HttpGet("{id}/children")]
-        public async Task<ActionResult<IReadOnlyList<ForumCommentResponseDTO>>> GetChildren(
-            [FromRoute] ulong id,
-            CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var res = await _service.GetChildrenAsync(id, ct);
-            return Ok(res);
+            return HandleException(ex);
         }
+    }
 
-        // Search & filter (paging)
-        [HttpGet("search")]
-        public async Task<ActionResult<PagedResponse<ForumCommentResponseDTO>>> Search(
-            [FromQuery] string? keyword,
-            [FromQuery] ulong? postId,
-            [FromQuery] ulong? userId,
-            [FromQuery] ForumCommentStatus? status,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            CancellationToken ct = default)
+    /// <summary>Lấy danh sách bình luận gốc của 1 bài viết (có phân trang)</summary>
+    [HttpGet("by-post/{postId}")]
+    [AllowAnonymous]
+    [EndpointSummary("Get Comments By Post (Paged)")]
+    [EndpointDescription("VD: /api/ForumComments/by-post/123?page=1&pageSize=20&deep=false")]
+    public async Task<ActionResult<APIResponse>> GetByPost(
+        [FromRoute] ulong postId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool deep = false)
+    {
+        try
         {
-            var res = await _service.SearchAsync(keyword, postId, userId, status, page, pageSize, ct);
-            return Ok(res);
+            ClampPaging(ref page, ref pageSize);
+            var paged = await _service.GetByPostAsync(postId, page, pageSize, deep, GetCancellationToken());
+            return SuccessResponse(paged);
         }
-
-        // =========== Update ===========
-        // Cập nhật NỘI DUNG (content) — không đổi status
-        [HttpPatch("{id}")]
-        // [Authorize]
-        public async Task<IActionResult> UpdateContent(
-            [FromRoute] ulong id,
-            [FromBody] ForumCommentUpdateDTO dto,
-            CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var (currentUserId, isModerator) = GetUserContext();
-            if (currentUserId is null) return Unauthorized();
-
-            var ok = await _service.UpdateContentAsync(id, dto, currentUserId.Value, isModerator, ct);
-            if (!ok) return Forbid(); // hoặc NotFound() nếu muốn phân biệt
-            return NoContent();
+            return HandleException(ex);
         }
+    }
 
-        // Đổi STATUS (Moderation)
-        [HttpPatch("{id}/status")]
-        // [Authorize(Roles = "Admin,Moderator")]
-        public async Task<IActionResult> SetStatus(
-            [FromRoute] ulong id,
-            [FromBody] ForumCommentSetStatusDTO body,
-            CancellationToken ct = default)
+    /// <summary>Lấy các bình luận con trực tiếp của một bình luận</summary>
+    [HttpGet("{id}/children")]
+    [AllowAnonymous]
+    [EndpointSummary("Get Direct Children")]
+    [EndpointDescription("Trả về danh sách các comment là con trực tiếp của comment {id}.")]
+    public async Task<ActionResult<APIResponse>> GetChildren([FromRoute] ulong id)
+    {
+        try
         {
-            var (_, isModerator) = GetUserContext();
-            // ép body.Id khớp id route (tránh client gửi sai)
-            body.Id = id;
-
-            var ok = await _service.SetStatusAsync(body, 0, isModerator, ct);
-            if (!ok) return Forbid(); // hoặc NotFound nếu muốn
-            return NoContent();
+            var items = await _service.GetChildrenAsync(id, GetCancellationToken());
+            return SuccessResponse(items);
         }
-
-        // =========== Delete ===========
-        [HttpDelete("{id}")]
-        // [Authorize]
-        public async Task<IActionResult> Delete(
-            [FromRoute] ulong id,
-            [FromQuery] bool hardDelete = false,
-            CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var (actingUserId, isModerator) = GetUserContext();
-            if (actingUserId is null) return Unauthorized();
-
-            var ok = await _service.DeleteAsync(id, hardDelete, actingUserId.Value, isModerator, ct);
-            if (!ok) return Forbid(); // hoặc NotFound
-            return NoContent();
+            return HandleException(ex);
         }
+    }
 
-        // =========== Reactions ===========
-        [HttpPost("{id}/like")]
-        // [Authorize]
-        public async Task<IActionResult> Like(
-            [FromRoute] ulong id,
-            [FromQuery] int delta = 1,
-            CancellationToken ct = default)
+    /// <summary>Tìm kiếm & lọc bình luận (có phân trang)</summary>
+    [HttpGet("search")]
+    [AllowAnonymous]
+    [EndpointSummary("Search/Filter Comments (Paged)")]
+    [EndpointDescription("Query: keyword, postId, userId, status (Visible/Hidden/Deleted), page, pageSize")]
+    public async Task<ActionResult<APIResponse>> Search(
+        [FromQuery] string? keyword,
+        [FromQuery] ulong? postId,
+        [FromQuery] ulong? userId,
+        [FromQuery] ForumCommentStatus? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
         {
-            var ok = await _service.LikeAsync(id, delta, ct);
-            if (!ok) return NotFound();
-            return NoContent();
+            ClampPaging(ref page, ref pageSize);
+            var paged = await _service.SearchAsync(keyword, postId, userId, status, page, pageSize, GetCancellationToken());
+            return SuccessResponse(paged);
         }
-
-        [HttpPost("{id}/dislike")]
-        // [Authorize]
-        public async Task<IActionResult> Dislike(
-            [FromRoute] ulong id,
-            [FromQuery] int delta = 1,
-            CancellationToken ct = default)
+        catch (Exception ex)
         {
-            var ok = await _service.DislikeAsync(id, delta, ct);
-            if (!ok) return NotFound();
-            return NoContent();
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>Cập nhật nội dung bình luận (không đổi trạng thái)</summary>
+    [HttpPatch("{id}")]
+    [Authorize]
+    [EndpointSummary("Update Comment Content")]
+    [EndpointDescription("Chỉ tác giả hoặc Admin/Staff mới được sửa nội dung.")]
+    public async Task<ActionResult<APIResponse>> UpdateContent([FromRoute] ulong id, [FromBody] ForumCommentUpdateDTO dto)
+    {
+        var validation = ValidateModel();
+        if (validation != null) return validation;
+
+        try
+        {
+            var (uid, isMod) = GetUserContext();
+            if (uid is null) return ErrorResponse("Unauthorized", HttpStatusCode.Unauthorized);
+
+            var ok = await _service.UpdateContentAsync(id, dto, uid.Value, isMod, GetCancellationToken());
+            if (!ok) return ErrorResponse("Forbidden or not found", HttpStatusCode.Forbidden);
+
+            // trả về bản mới nhất
+            var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
+            return SuccessResponse(updated);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>Đổi trạng thái bình luận (moderation)</summary>
+    [HttpPatch("{id}/status")]
+    [Authorize(Roles = "Admin,Staff")]
+    [EndpointSummary("Set Comment Status")]
+    [EndpointDescription("Chỉ Admin/Staff. Body: { status: Visible|Hidden|Deleted }")]
+    public async Task<ActionResult<APIResponse>> SetStatus([FromRoute] ulong id, [FromBody] ForumCommentSetStatusDTO body)
+    {
+        var validation = ValidateModel();
+        if (validation != null) return validation;
+
+        try
+        {
+            body.Id = id; // đảm bảo khớp route
+            var ok = await _service.SetStatusAsync(body, 0, true, GetCancellationToken());
+            if (!ok) return ErrorResponse("Not found or cannot change status", HttpStatusCode.Forbidden);
+
+            var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
+            return SuccessResponse(updated);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>Xóa bình luận (soft/hard)</summary>
+    [HttpDelete("{id}")]
+    [Authorize]
+    [EndpointSummary("Delete Comment")]
+    [EndpointDescription("hardDelete=false: soft delete (đổi status). hardDelete=true: xóa cứng.")]
+    public async Task<ActionResult<APIResponse>> Delete([FromRoute] ulong id, [FromQuery] bool hardDelete = false)
+    {
+        try
+        {
+            var (uid, isMod) = GetUserContext();
+            if (uid is null) return ErrorResponse("Unauthorized", HttpStatusCode.Unauthorized);
+
+            var ok = await _service.DeleteAsync(id, hardDelete, uid.Value, isMod, GetCancellationToken());
+            if (!ok) return ErrorResponse("Forbidden or not found", HttpStatusCode.Forbidden);
+
+            return SuccessResponse(message: "Deleted", statusCode: HttpStatusCode.NoContent);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>Tăng/giảm lượt thích (like)</summary>
+    [HttpPost("{id}/like")]
+    [Authorize] // tuỳ yêu cầu – có thể AllowAnonymous
+    [EndpointSummary("Like Comment")]
+    [EndpointDescription("delta mặc định = 1. Có thể truyền -1 để hủy like.")]
+    public async Task<ActionResult<APIResponse>> Like([FromRoute] ulong id, [FromQuery] int delta = 1)
+    {
+        try
+        {
+            var ok = await _service.LikeAsync(id, delta, GetCancellationToken());
+            if (!ok) return ErrorResponse("Not found", HttpStatusCode.NotFound);
+            var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
+            return SuccessResponse(updated);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
+        }
+    }
+
+    /// <summary>Tăng/giảm lượt không thích (dislike)</summary>
+    [HttpPost("{id}/dislike")]
+    [Authorize] // tuỳ yêu cầu – có thể AllowAnonymous
+    [EndpointSummary("Dislike Comment")]
+    [EndpointDescription("delta mặc định = 1. Có thể truyền -1 để hủy dislike.")]
+    public async Task<ActionResult<APIResponse>> Dislike([FromRoute] ulong id, [FromQuery] int delta = 1)
+    {
+        try
+        {
+            var ok = await _service.DislikeAsync(id, delta, GetCancellationToken());
+            if (!ok) return ErrorResponse("Not found", HttpStatusCode.NotFound);
+            var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
+            return SuccessResponse(updated);
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex);
         }
     }
 }
