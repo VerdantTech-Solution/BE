@@ -49,7 +49,7 @@ namespace API.Controllers
         }
 
         // =========== Read ===========
-        [HttpGet("{id:ulong}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<ForumCommentResponseDTO>> GetById(
             [FromRoute] ulong id,
             [FromQuery] bool deep = false,
@@ -61,7 +61,7 @@ namespace API.Controllers
         }
 
         // Lấy comment theo Post (paging)
-        [HttpGet("by-post/{postId:ulong}")]
+        [HttpGet("by-post/{postId}")]
         public async Task<ActionResult<PagedResponse<ForumCommentResponseDTO>>> GetByPost(
             [FromRoute] ulong postId,
             [FromQuery] int page = 1,
@@ -74,7 +74,7 @@ namespace API.Controllers
         }
 
         // Children trực tiếp của 1 comment
-        [HttpGet("{id:ulong}/children")]
+        [HttpGet("{id}/children")]
         public async Task<ActionResult<IReadOnlyList<ForumCommentResponseDTO>>> GetChildren(
             [FromRoute] ulong id,
             CancellationToken ct = default)
@@ -100,7 +100,7 @@ namespace API.Controllers
 
         // =========== Update ===========
         // Cập nhật NỘI DUNG (content) — không đổi status
-        [HttpPatch("{id:ulong}")]
+        [HttpPatch("{id}")]
         // [Authorize]
         public async Task<IActionResult> UpdateContent(
             [FromRoute] ulong id,
@@ -116,7 +116,7 @@ namespace API.Controllers
         }
 
         // Đổi STATUS (Moderation)
-        [HttpPatch("{id:ulong}/status")]
+        [HttpPatch("{id}/status")]
         // [Authorize(Roles = "Admin,Moderator")]
         public async Task<IActionResult> SetStatus(
             [FromRoute] ulong id,
@@ -133,7 +133,7 @@ namespace API.Controllers
         }
 
         // =========== Delete ===========
-        [HttpDelete("{id:ulong}")]
+        [HttpDelete("{id}")]
         // [Authorize]
         public async Task<IActionResult> Delete(
             [FromRoute] ulong id,
@@ -149,7 +149,7 @@ namespace API.Controllers
         }
 
         // =========== Reactions ===========
-        [HttpPost("{id:ulong}/like")]
+        [HttpPost("{id}/like")]
         // [Authorize]
         public async Task<IActionResult> Like(
             [FromRoute] ulong id,
@@ -161,7 +161,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpPost("{id:ulong}/dislike")]
+        [HttpPost("{id}/dislike")]
         // [Authorize]
         public async Task<IActionResult> Dislike(
             [FromRoute] ulong id,
