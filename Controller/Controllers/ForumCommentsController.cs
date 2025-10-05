@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using BLL.Interfaces;                 // IForumCommentService (đổi nếu namespace khác)
-using BLL.DTO;                       // APIResponse, PagedResponse<T>
-using BLL.DTO.ForumComment;          // các DTO comment
-using DAL.Data.Models;               // ForumCommentStatus
+using BLL.DTO;                        // APIResponse, PagedResponse<T>
+using BLL.DTO.ForumComment;          // ForumComment DTOs
+
+using DAL.Data.Models;               // ForumCommentStatus (nếu enum ở đây)
+using DAL.Data;                      // ForumCommentStatus (nếu enum ở đây)
 
 namespace Controller.Controllers;
 
@@ -26,9 +28,11 @@ public class ForumCommentsController : BaseController
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
                    ?? User.FindFirstValue("sub")
                    ?? User.FindFirstValue("uid");
-        ulong? uid = null; if (ulong.TryParse(idStr, out var v)) uid = v;
 
-        // tùy hệ thống role: Admin/Staff là moderator
+        ulong? uid = null;
+        if (ulong.TryParse(idStr, out var v)) uid = v;
+
+        // Tùy hệ thống role: Admin/Staff là moderator
         var isMod = User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("Moderator");
         return (uid, isMod);
     }
@@ -217,7 +221,8 @@ public class ForumCommentsController : BaseController
             var ok = await _service.DeleteAsync(id, hardDelete, uid.Value, isMod, GetCancellationToken());
             if (!ok) return ErrorResponse("Forbidden or not found", HttpStatusCode.Forbidden);
 
-            return SuccessResponse(message: "Deleted", statusCode: HttpStatusCode.NoContent);
+            // Trả 204 No Content theo BaseController
+            return SuccessResponse(null, HttpStatusCode.NoContent);
         }
         catch (Exception ex)
         {
@@ -227,7 +232,7 @@ public class ForumCommentsController : BaseController
 
     /// <summary>Tăng/giảm lượt thích (like)</summary>
     [HttpPost("{id}/like")]
-    [Authorize] // tuỳ yêu cầu – có thể AllowAnonymous
+    [Authorize] // tùy yêu cầu – có thể AllowAnonymous
     [EndpointSummary("Like Comment")]
     [EndpointDescription("delta mặc định = 1. Có thể truyền -1 để hủy like.")]
     public async Task<ActionResult<APIResponse>> Like([FromRoute] ulong id, [FromQuery] int delta = 1)
@@ -236,6 +241,7 @@ public class ForumCommentsController : BaseController
         {
             var ok = await _service.LikeAsync(id, delta, GetCancellationToken());
             if (!ok) return ErrorResponse("Not found", HttpStatusCode.NotFound);
+
             var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
             return SuccessResponse(updated);
         }
@@ -247,7 +253,7 @@ public class ForumCommentsController : BaseController
 
     /// <summary>Tăng/giảm lượt không thích (dislike)</summary>
     [HttpPost("{id}/dislike")]
-    [Authorize] // tuỳ yêu cầu – có thể AllowAnonymous
+    [Authorize] // tùy yêu cầu – có thể AllowAnonymous
     [EndpointSummary("Dislike Comment")]
     [EndpointDescription("delta mặc định = 1. Có thể truyền -1 để hủy dislike.")]
     public async Task<ActionResult<APIResponse>> Dislike([FromRoute] ulong id, [FromQuery] int delta = 1)
@@ -256,6 +262,7 @@ public class ForumCommentsController : BaseController
         {
             var ok = await _service.DislikeAsync(id, delta, GetCancellationToken());
             if (!ok) return ErrorResponse("Not found", HttpStatusCode.NotFound);
+
             var updated = await _service.GetByIdAsync(id, false, GetCancellationToken());
             return SuccessResponse(updated);
         }
