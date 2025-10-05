@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BLL.DTO;
 using BLL.DTO.ForumComment;
-// ĐỔI nếu namespace PagedResponse khác:
-using BLL.DTO.Shared;                   // chứa PagedResponse<T>
 using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Data.Models;
