@@ -2,13 +2,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using BLL.Interfaces;                 // IForumCommentService (đổi nếu namespace khác)
-using BLL.DTO;                        // APIResponse, PagedResponse<T>
-using BLL.DTO.ForumComment;          // ForumComment DTOs
-
-using DAL.Data.Models;               // ForumCommentStatus (nếu enum ở đây)
-using DAL.Data;                      // ForumCommentStatus (nếu enum ở đây)
+using BLL.DTO;                        
+using BLL.DTO.ForumComment;         
+using DAL.Data;
+using BLL.Services.Interfaces;                      
 
 namespace Controller.Controllers;
 
