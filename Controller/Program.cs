@@ -15,6 +15,7 @@ using BLL.DTO;
 using System.Net;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
+using Infrastructure.Cloudinary;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +102,17 @@ builder.Services.AddScoped<IForumPostService,ForumPostService>();
 
 // Infrastructure registrations
 builder.Services.AddInfrastructure();
+
+//cloudinary
+builder.Services.Configure<CloudinaryOptions>(o =>
+{
+    o.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY__CLOUDNAME") ?? "";
+    o.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY__APIKEY") ?? "";
+    o.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY__APISECRET") ?? "";
+    o.DefaultFolder = Environment.GetEnvironmentVariable("CLOUDINARY__DEFAULTFOLDER") ?? "uploads";
+});
+
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));
