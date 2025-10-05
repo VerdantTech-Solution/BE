@@ -10,6 +10,9 @@ public class CloudinaryService : ICloudinaryService
     private readonly CloudinaryDotNet.Cloudinary _cloudinary;
     private readonly CloudinaryOptions _opts;
 
+    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    { "jpg","jpeg","png","gif","bmp","webp","tiff","ico","svg" };
+
     public CloudinaryService(IOptions<CloudinaryOptions> opts)
     {
         _opts = opts.Value;
@@ -21,14 +24,24 @@ public class CloudinaryService : ICloudinaryService
     {
         if (file is null || file.Length == 0) return null;
 
+        var ext = Path.GetExtension(file.FileName)?.Trim('.').ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(ext) || !AllowedExtensions.Contains(ext))
+            throw new InvalidOperationException($"Định dạng file không hợp lệ: {ext}");
+
         await using var stream = file.OpenReadStream();
+
         var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(file.FileName, stream),
-            Folder = string.IsNullOrWhiteSpace(folder) ? _opts.DefaultFolder : folder,
+            Folder = string.IsNullOrWhiteSpace(folder) ? _opts.DefaultFolder : $"{_opts.DefaultFolder}/{folder}".Trim('/'),
             UseFilename = true,
             UniqueFilename = true,
-            Overwrite = false
+            Overwrite = false,
+            Transformation = new Transformation()
+                .Width(1000)
+                .Height(1000)
+                .Crop("limit")
+                .Quality("auto")
         };
 
         var result = await _cloudinary.UploadAsync(uploadParams, ct);
@@ -38,10 +51,21 @@ public class CloudinaryService : ICloudinaryService
         return null;
     }
 
-    public async Task<bool> DeleteAsync(string publicId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<UploadResultDto>> UploadManyAsync(IEnumerable<IFormFile> files, string? folder = null, CancellationToken ct = default)
     {
-        var res = await _cloudinary.DestroyAsync(new DeletionParams(publicId)); 
-        return res.Result == "ok";
+        var outputs = new List<UploadResultDto>();
+        foreach (var f in files)
+        {
+            var one = await UploadAsync(f, folder, ct);
+            if (one is not null) outputs.Add(one);
+        }
+        return outputs;
     }
 
+    public async Task<bool> DeleteAsync(string publicId, CancellationToken ct = default)
+    {
+        // DestroyAsync không có overload nhận CancellationToken
+        var res = await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+        return res.Result == "ok";
+    }
 }

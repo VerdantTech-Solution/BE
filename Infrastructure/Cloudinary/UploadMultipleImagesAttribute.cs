@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Cloudinary;
@@ -19,24 +18,20 @@ public class UploadMultipleImagesAttribute : Attribute, IAsyncActionFilter
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var http = context.HttpContext;
-        var results = new List<UploadResultDto>();
 
         if (http.Request.HasFormContentType)
         {
             var files = http.Request.Form.Files.GetFiles(_formField);
-            if (files.Any())
+            if (files.Count > 0)
             {
-                var cloudinary = http.RequestServices.GetRequiredService<ICloudinaryService>();
-
-                foreach (var file in files)
+                var svc = http.RequestServices.GetRequiredService<ICloudinaryService>();
+                var uploaded = await svc.UploadManyAsync(files, _folder, http.RequestAborted);
+                if (uploaded.Count > 0)
                 {
-                    var uploaded = await cloudinary.UploadAsync(file, _folder, http.RequestAborted);
-                    if (uploaded is not null)
-                        results.Add(uploaded);
+                    http.Items["uploadedImages"] = uploaded;                         // List<UploadResultDto>
+                    http.Items["uploadedImageUrls"] = uploaded.Select(x => x.Url).ToList();
+                    http.Items["uploadedImagePublicIds"] = uploaded.Select(x => x.PublicId).ToList();
                 }
-
-                if (results.Any())
-                    http.Items["uploadedImages"] = results;
             }
         }
 

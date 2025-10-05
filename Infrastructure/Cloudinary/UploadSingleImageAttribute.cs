@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Cloudinary;
@@ -25,8 +24,8 @@ public class UploadSingleImageAttribute : Attribute, IAsyncActionFilter
             var file = http.Request.Form.Files.GetFile(_formField);
             if (file != null)
             {
-                var cloudinary = http.RequestServices.GetRequiredService<ICloudinaryService>();
-                var uploaded = await cloudinary.UploadAsync(file, _folder, http.RequestAborted);
+                var svc = http.RequestServices.GetRequiredService<ICloudinaryService>();
+                var uploaded = await svc.UploadAsync(file, _folder, http.RequestAborted);
                 if (uploaded is not null)
                 {
                     http.Items["uploadedImageUrl"] = uploaded.Url;
