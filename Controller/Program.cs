@@ -16,6 +16,9 @@ using System.Net;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 using Infrastructure.Cloudinary;
+using DAL.Repositories.Interfaces;
+using DAL.Repositories;
+using BLL.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +74,7 @@ builder.Services.AddScoped<IRepository<Order>, Repository<Order>>();
 builder.Services.AddScoped<IRepository<OrderDetail>, Repository<OrderDetail>>();
 builder.Services.AddScoped<IRepository<ForumCategory>, Repository<ForumCategory>>();
 builder.Services.AddScoped<IRepository<ForumPost>, Repository<ForumPost>>();
+builder.Services.AddScoped<IRepository<ForumComment>, Repository<ForumComment>>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -86,6 +90,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
 builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
+builder.Services.AddScoped<IForumCommentRepository,ForumCommentRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -99,6 +104,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
 builder.Services.AddScoped<IForumPostService,ForumPostService>();
+builder.Services.AddScoped<IForumCommentService,ForumCommentService>();
 
 // Infrastructure registrations
 builder.Services.AddInfrastructure();
