@@ -40,11 +40,18 @@ public class CloudinaryController : ControllerBase
         return Ok(new { message = "Upload nhiều ảnh thành công!", images = uploaded });
     }
 
-    [HttpDelete("delete/{publicId}")]
-    public async Task<IActionResult> DeleteImage(string publicId)
+    [HttpDelete("delete")]
+    public async Task<IActionResult> DeleteImage([FromQuery] string publicId)
     {
-        var ok = await _cloudinaryService.DeleteAsync(publicId);
-        return ok ? Ok(new { message = "Đã xoá ảnh thành công.", publicId })
-                  : BadRequest(new { message = "Xoá ảnh thất bại hoặc không tồn tại." });
+        if (string.IsNullOrWhiteSpace(publicId))
+            return BadRequest(new { message = "Thiếu publicId." });
+
+        var decoded = Uri.UnescapeDataString(publicId);
+
+        var ok = await _cloudinaryService.DeleteAsync(decoded);
+        return ok
+            ? Ok(new { message = "Đã xoá ảnh thành công.", publicId = decoded })
+            : BadRequest(new { message = "Xoá ảnh thất bại hoặc không tồn tại.", publicId = decoded });
     }
+
 }

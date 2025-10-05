@@ -64,8 +64,15 @@ public class CloudinaryService : ICloudinaryService
 
     public async Task<bool> DeleteAsync(string publicId, CancellationToken ct = default)
     {
-        // DestroyAsync không có overload nhận CancellationToken
-        var res = await _cloudinary.DestroyAsync(new DeletionParams(publicId));
-        return res.Result == "ok";
+        var param = new DeletionParams(publicId)
+        {
+            ResourceType = ResourceType.Image,  // Ảnh
+            Type = "upload",                    // Mặc định loại "upload"
+            Invalidate = true                   // Xoá cache CDN
+        };
+
+        var res = await _cloudinary.DestroyAsync(param);
+        return string.Equals(res.Result, "ok", StringComparison.OrdinalIgnoreCase);
     }
+
 }
