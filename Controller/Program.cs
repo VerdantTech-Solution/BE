@@ -75,6 +75,8 @@ builder.Services.AddScoped<IRepository<OrderDetail>, Repository<OrderDetail>>();
 builder.Services.AddScoped<IRepository<ForumCategory>, Repository<ForumCategory>>();
 builder.Services.AddScoped<IRepository<ForumPost>, Repository<ForumPost>>();
 builder.Services.AddScoped<IRepository<ForumComment>, Repository<ForumComment>>();
+builder.Services.AddScoped<IRepository<ProductRegistration>, Repository<ProductRegistration>>();
+builder.Services.AddScoped<IRepository<MediaLink>, Repository<MediaLink>>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -91,6 +93,7 @@ builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
 builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
 builder.Services.AddScoped<IForumCommentRepository,ForumCommentRepository>();
+builder.Services.AddScoped<IProductRegistrationRepository, ProductRegistrationRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -119,6 +122,8 @@ builder.Services.Configure<CloudinaryOptions>(o =>
 });
 
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+// Configure Memory Cache
+builder.Services.AddMemoryCache();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperConfig));

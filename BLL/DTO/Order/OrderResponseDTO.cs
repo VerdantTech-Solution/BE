@@ -17,6 +17,7 @@ namespace BLL.DTO.Order
         public decimal TotalAmount { get; set; }
 
         public string? ShippingMethod { get; set; }
+        public string? OrderPaymentMethod { get; set; }
         public string? TrackingNumber { get; set; }
         public string? Notes { get; set; }
         public string? CancelledReason { get; set; }
@@ -30,18 +31,5 @@ namespace BLL.DTO.Order
 
         public AddressResponseDTO Address { get; set; } = null!;
         public List<OrderDetailResponseDTO> OrderDetails { get; set; } = new();
-    }
-
-    public class ProductResponseDTO
-    {
-        public ulong Id { get; set; }
-        public string ProductCode { get; set; } = string.Empty;
-        public string ProductName { get; set; } = string.Empty;
-        public string Slug { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public decimal UnitPrice { get; set; }
-        public string? Images { get; set; }
-        public int WarrantyMonths { get; set; }
-        public decimal RatingAverage { get; set; }
     }
 }
