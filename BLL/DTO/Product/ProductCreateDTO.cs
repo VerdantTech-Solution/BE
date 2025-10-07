@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -40,22 +41,26 @@ namespace BLL.DTO.Product
         [StringLength(10, ErrorMessage = "Xếp hạng hiệu suất năng lượng không được vượt quá 10 ký tự")]
         public string? EnergyEfficiencyRating { get; set; }
 
-        /// <summary>
-        /// Technical specifications as key-value pairs (JSON)
-        /// </summary>
+        // <summary>
+        //Technical specifications as key-value pairs (JSON)
+        // </summary>
         public Dictionary<string, object> Specifications { get; set; } = new();
 
-        /// <summary>
-        /// Manual/guide URLs, comma-separated
-        /// </summary>
-        [StringLength(1000, ErrorMessage = "Các URL hướng dẫn không được vượt quá 1000 ký tự")]
+        // <summary>
+        // Manual/guide URLs, comma-separated
+        // </summary>
+        //[StringLength(1000, ErrorMessage = "Các URL hướng dẫn không được vượt quá 1000 ký tự")]
         public string? ManualUrls { get; set; }
 
-        /// <summary>
-        /// Image URLs, comma-separated
-        /// </summary>
-        [StringLength(1000, ErrorMessage = "Các URL hình ảnh không được vượt quá 1000 ký tự")]
-        public string? Images { get; set; }
+        // <summary>
+        // Image URLs, comma-separated
+        // </summary>
+        //[StringLength(1000, ErrorMessage = "Các URL hình ảnh không được vượt quá 1000 ký tự")]
+        //public string? Images { get; set; }
+
+        public List<IFormFile>? Images { get; set; }
+
+
 
         [Range(1, int.MaxValue, ErrorMessage = "Thời gian bảo hành phải là số dương")]
         public int WarrantyMonths { get; set; } = 12;
@@ -65,9 +70,9 @@ namespace BLL.DTO.Product
 
         public decimal? WeightKg { get; set; }
 
-        /// <summary>
-        /// {length, width, height} (JSON)
-        /// </summary>
+        // <summary>
+        // {length, width, height} (JSON)
+        // </summary>
         public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
 
         public bool IsActive { get; set; } = true;
