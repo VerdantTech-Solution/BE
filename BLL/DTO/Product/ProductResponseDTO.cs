@@ -33,7 +33,8 @@ namespace BLL.DTO.Product
 
         public string? ManualUrls { get; set; }
 
-        public string? Images { get; set; }
+       // public string? MainImageUrl { get; set; }
+        public List<ProductImageDTO> Images { get; set; } = new();
 
         public int WarrantyMonths { get; set; } = 12;
 
@@ -55,4 +56,15 @@ namespace BLL.DTO.Product
 
         public DateTime UpdatedAt { get; set; }
     }
+    /// <summary>
+    /// Thông tin ảnh Cloudinary của sản phẩm
+    /// </summary>
+    public class ProductImageDTO
+    {
+        public string Url { get; set; } = "";
+        public string PublicId { get; set; } = "";
+        public string Purpose { get; set; } = "none"; // front/back/none
+        public int SortOrder { get; set; }
+    }
 }
+

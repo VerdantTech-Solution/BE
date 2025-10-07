@@ -52,12 +52,13 @@ namespace BLL.DTO.Product
         //[StringLength(1000, ErrorMessage = "Các URL hướng dẫn không được vượt quá 1000 ký tự")]
         public string? ManualUrls { get; set; }
 
-        // <summary>
-        // Image URLs, comma-separated
-        // </summary>
+
         //[StringLength(1000, ErrorMessage = "Các URL hình ảnh không được vượt quá 1000 ký tự")]
         //public string? Images { get; set; }
 
+        /// <summary>
+        /// Danh sách ảnh sản phẩm (form-data field: images[])
+        /// </summary>
         public List<IFormFile>? Images { get; set; }
 
 

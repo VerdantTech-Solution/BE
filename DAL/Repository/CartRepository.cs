@@ -116,7 +116,7 @@ public class CartRepository : ICartRepository
         }
 
         return await _mediaLinkRepository.GetAllByFilterAsync(
-            p => productIds.Contains(p.OwnerId) && p.OwnerType == MediaOwnerType.Products,
+            p => productIds.Contains(p.OwnerId) && p.OwnerType == MediaOwnerType.Product,
             true, cancellationToken);
     }
 

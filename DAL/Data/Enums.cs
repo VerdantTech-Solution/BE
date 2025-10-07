@@ -238,13 +238,14 @@ public enum ConditionOnArrival
 
 public enum MediaOwnerType
 {
-    VendorCertificates,
-    ChatbotMessages,
-    Products,
-    ProductRegistrations,
-    ProductCertificates,
-    ProductReviews,
-    ForumPosts
+    VendorCertificate,
+    //ChatbotMessages,
+    Product,
+    ProductRegistration,
+    ProductCertificate,
+    ProductReview,
+    ForumPost,
+    UserProfile
 }
 
 public enum MediaPurpose
