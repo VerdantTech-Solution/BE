@@ -31,6 +31,7 @@ namespace Controller.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [EndpointSummary("Get all post")]
         public async Task<ActionResult<PagedResponse<ForumPostResponseDTO>>> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
@@ -40,6 +41,8 @@ namespace Controller.Controllers
 
         [HttpGet("category/{categoryId:long}")]
         [AllowAnonymous]
+        [EndpointSummary("Get all post by forum category")]
+
         public async Task<ActionResult<PagedResponse<ForumPostResponseDTO>>> GetByCategory(
             long categoryId,
             [FromQuery] int page = 1,
@@ -58,6 +61,8 @@ namespace Controller.Controllers
 
         [HttpGet("slug/{slug}")]
         [AllowAnonymous]
+        [EndpointSummary("Get post by slug")]
+
         public async Task<ActionResult<ForumPostResponseDTO>> GetBySlug(string slug, CancellationToken ct = default)
         {
             var post = await _service.GetBySlugAsync(slug, ct);
@@ -66,8 +71,9 @@ namespace Controller.Controllers
 
         // ======== Single CREATE (multipart/form-data) ========
         [HttpPost]
-        //[Authorize] // cần token để lấy UserId
+        [Authorize] // cần token để lấy UserId
         [Consumes("multipart/form-data")]
+        [EndpointSummary("Create post")]
         public async Task<ActionResult<ForumPostResponseDTO>> Create([FromForm] ForumPostCreateDTO dto, CancellationToken ct = default)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -96,8 +102,10 @@ namespace Controller.Controllers
 
         // ======== Single UPDATE (multipart/form-data) ========
         [HttpPut("{id:long}")]
-        //[Authorize]
+        [Authorize]
         [Consumes("multipart/form-data")]
+        [EndpointSummary("Update post")]
+
         public async Task<ActionResult<ForumPostResponseDTO>> Update(long id, [FromForm] ForumPostUpdateDTO dto, CancellationToken ct = default)
         {
             if (id != (long)dto.Id) return BadRequest("Id không khớp");
@@ -131,7 +139,9 @@ namespace Controller.Controllers
 
         // ======== Delete (tuỳ chọn xoá file Cloudinary gửi kèm) ========
         [HttpDelete("{id:long}")]
-        //[Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff")]
+        [EndpointSummary("Delete post")]
+
         public async Task<ActionResult> Delete(long id, [FromBody] List<string>? cloudinaryPublicIds, CancellationToken ct = default)
         {
             if (cloudinaryPublicIds != null)
