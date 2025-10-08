@@ -6,6 +6,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 
 namespace BLL.DTO.ForumPost
 {
@@ -30,5 +32,11 @@ namespace BLL.DTO.ForumPost
         public bool IsPinned { get; set; } = false;
 
         public ForumPostStatus Status { get; set; } = ForumPostStatus.Visible;
+        public IFormFile? CoverImage { get; set; }       // 1 ảnh đại diện
+        public List<IFormFile>? Images { get; set; }     // nhiều ảnh nội dung
+
+        [JsonIgnore] 
+        public ulong UserId { get; set; }
     }
+
 }

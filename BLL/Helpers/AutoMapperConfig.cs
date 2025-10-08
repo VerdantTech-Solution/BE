@@ -4,6 +4,7 @@ using BLL.DTO.Cart;
 using BLL.DTO.CO2;
 using BLL.DTO.Courier;
 using BLL.DTO.FarmProfile;
+using BLL.DTO.ForumPost;
 using BLL.DTO.Order;
 using BLL.DTO.ProductCategory;
 using BLL.DTO.ProductRegistration;
@@ -26,7 +27,7 @@ public class AutoMapperConfig : Profile
         //Khi giá trị bị null
         //CreateMap<StudentDTO, Student>().ReverseMap()
         //.ForMember(n => n.Address, opt => opt.MapFrom(n => string.IsNullOrEmpty(n.Address) ? "No value found" : n.Address));
-        
+
         // User mappings
         CreateMap<UserCreateDTO, User>().ReverseMap();
         CreateMap<StaffCreateDTO, User>().ReverseMap();
@@ -37,19 +38,19 @@ public class AutoMapperConfig : Profile
         CreateMap<UserAddressCreateDTO, Address>().ReverseMap();
         CreateMap<UserAddressUpdateDTO, Address>().ReverseMap();
         CreateMap<UserAddressUpdateDTO, UserAddress>().ReverseMap();
-        
+
         // FarmProfile mappings
         CreateMap<FarmProfileCreateDto, FarmProfile>().ReverseMap();
         CreateMap<FarmProfile, FarmProfileResponseDTO>().ReverseMap();
         CreateMap<FarmProfileUpdateDTO, FarmProfile>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-        
+
         // Address mappings
         CreateMap<Address, AddressResponseDTO>().ReverseMap();
         CreateMap<FarmProfileCreateDto, Address>().ReverseMap();
         CreateMap<FarmProfileUpdateDTO, Address>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            
+
         // CO2Footprint mappings
         CreateMap<Fertilizer, CO2FootprintCreateDTO>().ReverseMap();
         CreateMap<EnvironmentalDatum, CO2FootprintCreateDTO>().ReverseMap();
@@ -59,13 +60,13 @@ public class AutoMapperConfig : Profile
             .ForMember(dest => dest.Fertilizer, opt => opt.MapFrom(src => src.Fertilizer));
         CreateMap<EnergyUsageDTO, EnergyUsage>().ReverseMap();
         CreateMap<FertilizerDTO, Fertilizer>().ReverseMap();
-        
+
         // ProductCategory mappings
         CreateMap<ProductCategoryCreateDTO, ProductCategory>().ReverseMap();
         CreateMap<ProductCategoryUpdateDTO, ProductCategory>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ProductCategory, ProductCategoryResponseDTO>().ReverseMap();
-        
+
         // Product mappings
         CreateMap<BLL.DTO.Product.ProductCreateDTO, Product>().ReverseMap();
         CreateMap<BLL.DTO.Product.ProductUpdateDTO, Product>()
@@ -77,12 +78,12 @@ public class AutoMapperConfig : Profile
         CreateMap<DAL.Data.Models.Cart, CartResponseDTO>()
             .ForMember(d => d.UserInfo, o => o.MapFrom(s => s.Customer));
         CreateMap<CartItem, CartItemDTO>()
-            .ForMember(d => d.ProductName,   o => o.MapFrom(s => s.Product.ProductName))
-            .ForMember(d => d.Slug,          o => o.MapFrom(s => s.Product.Slug))
-            .ForMember(d => d.Description,   o => o.MapFrom(s => s.Product.Description))
-            .ForMember(d => d.UnitPrice,     o => o.MapFrom(s => s.Product.UnitPrice))
-            .ForMember(d => d.IsActive,      o => o.MapFrom(s => s.Product.IsActive))
-            .ForMember(d => d.SoldCount,     o => o.MapFrom(s => s.Product.SoldCount))
+            .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product.ProductName))
+            .ForMember(d => d.Slug, o => o.MapFrom(s => s.Product.Slug))
+            .ForMember(d => d.Description, o => o.MapFrom(s => s.Product.Description))
+            .ForMember(d => d.UnitPrice, o => o.MapFrom(s => s.Product.UnitPrice))
+            .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Product.IsActive))
+            .ForMember(d => d.SoldCount, o => o.MapFrom(s => s.Product.SoldCount))
             .ForMember(d => d.RatingAverage, o => o.MapFrom(s => s.Product.RatingAverage));
         CreateMap<MediaLink, ImagesDTO>().ReverseMap();
 
@@ -111,5 +112,28 @@ public class AutoMapperConfig : Profile
         Length = src.DimensionsCm.ContainsKey("Length") ? Convert.ToDecimal(src.DimensionsCm["Length"]) : 0
     }));
         CreateMap<DAL.Data.Models.Order, OrderUpdateDTO>().ReverseMap();
+
+
+
+
+
+        // ForumPost mappings 
+        CreateMap<ForumPostCreateDTO, ForumPost>()
+            .ForMember(d => d.Id, o => o.Ignore())
+            .ForMember(d => d.CreatedAt, o => o.Ignore())
+            .ForMember(d => d.UpdatedAt, o => o.Ignore())
+            .ForMember(d => d.ViewCount, o => o.Ignore())
+            .ForMember(d => d.LikeCount, o => o.Ignore())
+            .ForMember(d => d.DislikeCount, o => o.Ignore());
+
+        CreateMap<ForumPostUpdateDTO, ForumPost>()
+            .ForMember(d => d.CreatedAt, o => o.Ignore())
+            .ForMember(d => d.UpdatedAt, o => o.Ignore())
+            .ForMember(d => d.ViewCount, o => o.Ignore())
+            .ForMember(d => d.LikeCount, o => o.Ignore())
+            .ForMember(d => d.DislikeCount, o => o.Ignore());
+
+        CreateMap<ForumPost, ForumPostResponseDTO>();
+
     }
 }

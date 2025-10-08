@@ -1,5 +1,6 @@
 ﻿using BLL.DTO;
 using BLL.DTO.ForumPost;
+using BLL.DTO.Media;
 using DAL.Data;
 using DAL.Data.Models;
 using System.Threading;
@@ -13,8 +14,11 @@ namespace BLL.Interfaces
         Task<ForumPostResponseDTO?> GetBySlugAsync(string slug, CancellationToken ct = default);
         Task<PagedResponse<ForumPostResponseDTO>> GetByCategoryAsync(ulong categoryId, int page, int pageSize, ForumPostStatus? status = null, CancellationToken ct = default);
         Task<ForumPostResponseDTO?> GetByIdAsync(ulong id, CancellationToken ct = default);
-        Task<ForumPostResponseDTO> CreateAsync(ForumPostCreateDTO dto, CancellationToken ct = default);
-        Task<ForumPostResponseDTO> UpdateAsync(ForumPostUpdateDTO dto, CancellationToken ct = default);
+
+        //Task<ForumPostResponseDTO> CreateAsync(ForumPostCreateDTO dto, CancellationToken ct = default);
+       // Task<ForumPostResponseDTO> UpdateAsync(ForumPostUpdateDTO dto, CancellationToken ct = default);
         Task<bool> DeleteAsync(ulong id, CancellationToken ct = default);
+        Task<ForumPostResponseDTO> CreateAsync(ForumPostCreateDTO dto, MediaUploadDTO? cover, IReadOnlyList<MediaUploadDTO> gallery, CancellationToken ct = default);
+        Task<ForumPostResponseDTO> UpdateAsync(ForumPostUpdateDTO dto, MediaUploadDTO? newCover, IReadOnlyList<MediaUploadDTO> newGallery, IReadOnlyList<string> removePublicIds, CancellationToken ct = default);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DAL.Data.Models;
 using DAL.Data.Configurations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.Data;
 
@@ -61,6 +62,7 @@ public class VerdantTechDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply all configurations
+        
         modelBuilder.ApplyConfiguration(new AddressConfiguration());
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new UserAddressConfiguration());

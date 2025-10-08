@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace BLL.DTO.ForumPost
 {
@@ -32,5 +33,12 @@ namespace BLL.DTO.ForumPost
         public bool IsPinned { get; set; }
 
         public ForumPostStatus Status { get; set; }
+
+        // NEW: file upload (tùy chọn, khi dùng multipart/form-data)
+        public IFormFile? CoverImage { get; set; }
+        public List<IFormFile>? Images { get; set; }
+
+        // NEW: cho phép client yêu cầu xóa ảnh cũ theo publicId
+        public List<string>? RemovePublicIds { get; set; }
     }
 }

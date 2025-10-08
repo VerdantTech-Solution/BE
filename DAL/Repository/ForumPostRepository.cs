@@ -18,7 +18,7 @@ namespace DAL.Repository
             _context = context;
         }
 
-        public async Task<ForumPost?> GetByIdAsync(ulong id, bool useNoTracking = true, CancellationToken cancellationToken = default)
+        public async Task<ForumPost?> GetByIdAsync(ulong id, bool useNoTracking = true, CancellationToken cancellationToken = default, bool includeNavigation = false)
         {
             IQueryable<ForumPost> query = _context.ForumPosts;
             if (useNoTracking) query = query.AsNoTracking();
@@ -30,7 +30,7 @@ namespace DAL.Repository
             return await query.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         }
 
-        public async Task<ForumPost?> GetBySlugAsync( string slug, bool useNoTracking = true, CancellationToken cancellationToken = default)
+        public async Task<ForumPost?> GetBySlugAsync( string slug, bool useNoTracking = true, CancellationToken cancellationToken = default, bool includeNavigation = false)
         {
             IQueryable<ForumPost> query = _context.ForumPosts;
             if (useNoTracking) query = query.AsNoTracking();
@@ -38,7 +38,7 @@ namespace DAL.Repository
             return await query.FirstOrDefaultAsync(p => p.Slug == slug, cancellationToken);
         }
 
-        public async Task<(List<ForumPost> Items, int TotalCount)> GetAllAsync(int page, int pageSize, ForumPostStatus? statusFilter = null, bool useNoTracking = true, CancellationToken cancellationToken = default)
+        public async Task<(List<ForumPost> Items, int TotalCount)> GetAllAsync(int page, int pageSize, ForumPostStatus? statusFilter = null, bool useNoTracking = true, CancellationToken cancellationToken = default, bool includeNavigation = false)
         {
             const int MaxPageSize = 100;
             if (page < 1) page = 1;
@@ -64,7 +64,7 @@ namespace DAL.Repository
             return (items, totalCount);
         }
 
-        public async Task<(List<ForumPost> Items, int TotalCount)> GetByCategoryAsync(ulong forumCategoryId, int page, int pageSize, ForumPostStatus? statusFilter = null, bool useNoTracking = true, CancellationToken cancellationToken = default)
+        public async Task<(List<ForumPost> Items, int TotalCount)> GetByCategoryAsync(ulong forumCategoryId, int page, int pageSize, ForumPostStatus? statusFilter = null, bool useNoTracking = true, CancellationToken cancellationToken = default, bool includeNavigation = false)
         {
             const int MaxPageSize = 100;
             if (page < 1) page = 1;

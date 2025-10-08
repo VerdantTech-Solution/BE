@@ -9,7 +9,7 @@ namespace Controller.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")] 
+    //[Authorize(Roles = "Admin")] 
     public class ForumCategoryController : ControllerBase
     {
         private readonly IForumCategoryService _service;

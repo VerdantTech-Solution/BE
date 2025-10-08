@@ -124,7 +124,7 @@ namespace Controller.Controllers
                         await _cloud.DeleteAsync(pid!, GetCancellationToken());
 
                     // 2c) Replace DB bằng ảnh mới
-                    var dtoImgs = ups.Select((u, i) => new UploadedImageDto
+                    var dtoImgs = ups.Select((u, i) => new MediaUploadDTO
                     {
                         Url = u.Url,
                         PublicId = u.PublicId,
@@ -161,7 +161,7 @@ namespace Controller.Controllers
                 if (ups == null || ups.Count == 0)
                     return ErrorResponse("Không có ảnh nào được upload.", HttpStatusCode.BadRequest);
 
-                var dtoImgs = ups.Select((u, i) => new UploadedImageDto
+                var dtoImgs = ups.Select((u, i) => new MediaUploadDTO
                 {
                     Url = u.Url,
                     PublicId = u.PublicId,

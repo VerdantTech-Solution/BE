@@ -19,9 +19,9 @@ namespace BLL.Interfaces
         Task<ProductResponseDTO> UpdateProductAsync(ulong id, ProductUpdateDTO dto, CancellationToken cancellationToken = default);
 
         /// <summary>Gắn thêm ảnh vào product (không xoá ảnh cũ)</summary>
-        Task AddProductImagesAsync(ulong productId, IReadOnlyList<UploadedImageDto> uploads, CancellationToken ct);
+        Task AddProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct);
 
         /// <summary>Thay toàn bộ ảnh product bằng danh sách mới (xoá cũ cả DB + Cloudinary)</summary>
-        Task ReplaceProductImagesAsync(ulong productId, IReadOnlyList<UploadedImageDto> uploads, CancellationToken ct);
+        Task ReplaceProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct);
     }
 }

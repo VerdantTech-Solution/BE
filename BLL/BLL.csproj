@@ -19,6 +19,7 @@
 	  <ProjectReference Include="..\DAL\DAL.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="DTO\VendorProfile\" />
 	  <Folder Include="DTO\Soil\" />
 	</ItemGroup>
 </Project>

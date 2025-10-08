@@ -27,12 +27,7 @@ namespace BLL.Services
             ArgumentNullException.ThrowIfNull(dto, $"{nameof(dto)} is null");
             if (await _productCategoryRepository.IsCategoryNameNotUniqueAsync(dto.Name, cancellationToken))
                 throw new ArgumentException("Tên danh mục sản phẩm đã tồn tại");
-            if (dto.ParentId != null)
-            {
-                var productCategoryParent = await _productCategoryRepository.GetProductCategoryByIdAsync(dto.ParentId.Value, useNoTracking: false, cancellationToken);
-                if (productCategoryParent == null || productCategoryParent.IsActive == false)
-                    throw new KeyNotFoundException("Không tìm thấy danh mục cha hoặc đã bị xóa.");
-            }
+            
             string slug = Utils.GenerateSlug(dto.Name);
             var productCategory = _mapper.Map<ProductCategory>(dto);
             productCategory.Slug = slug;

@@ -109,7 +109,7 @@ namespace BLL.Services
 
         #region --- MediaLink handlers ---
 
-        public async Task AddProductImagesAsync(ulong productId, IReadOnlyList<UploadedImageDto> uploads, CancellationToken ct)
+        public async Task AddProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct)
         {
             if (uploads == null || uploads.Count == 0) return;
 
@@ -138,7 +138,7 @@ namespace BLL.Services
             await _db.SaveChangesAsync(ct);
         }
 
-        public async Task ReplaceProductImagesAsync(ulong productId, IReadOnlyList<UploadedImageDto> uploads, CancellationToken ct)
+        public async Task ReplaceProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct)
         {
             if (uploads == null || uploads.Count == 0) return;
 

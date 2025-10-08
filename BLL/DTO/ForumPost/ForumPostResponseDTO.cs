@@ -24,5 +24,8 @@ namespace BLL.DTO.ForumPost
         public ForumPostStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? CoverImageUrl { get; set; }
+        public IReadOnlyList<string> GalleryImageUrls { get; set; } = new List<string>();
+
     }
 }
