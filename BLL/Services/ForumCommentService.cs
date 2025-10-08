@@ -10,6 +10,7 @@ using BLL.Services.Interfaces;
 using DAL.Data;
 using DAL.Data.Models;
 using DAL.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -17,11 +18,13 @@ namespace BLL.Services
     {
         private readonly IForumCommentRepository _repo;
         private readonly IMapper _mapper;
+        private readonly VerdantTechDbContext _db;
 
-        public ForumCommentService(IForumCommentRepository repo, IMapper mapper)
+        public ForumCommentService(IForumCommentRepository repo, IMapper mapper, VerdantTechDbContext db)
         {
             _repo = repo;
             _mapper = mapper;
+            _db = db;
         }
 
         // ====================== Create ======================
@@ -31,8 +34,38 @@ namespace BLL.Services
             ulong currentUserId,
             CancellationToken ct = default)
         {
-            var entity = _mapper.Map<ForumComment>(dto);
-            entity.UserId = currentUserId;
+            // Chuẩn hoá parentId: 0 => null (gốc)
+            ulong? parentId = dto.ParentId.HasValue && dto.ParentId.Value == 0
+                ? null
+                : dto.ParentId;
+
+            // Kiểm tra post tồn tại
+            var postExists = await _db.ForumPosts.AnyAsync(p => p.Id == dto.ForumPostId, ct);
+            if (!postExists)
+                throw new Exception("ForumPost không tồn tại.");
+
+            // Nếu có parent, kiểm tra parent tồn tại & cùng post
+            if (parentId.HasValue)
+            {
+                var parent = await _repo.GetByIdAsync(parentId.Value, ct);
+                if (parent == null || parent.ForumPostId != dto.ForumPostId)
+                    throw new Exception("Parent comment không hợp lệ.");
+            }
+
+            var now = DateTime.UtcNow;
+
+            var entity = new ForumComment
+            {
+                ForumPostId = dto.ForumPostId,
+                ParentId = parentId,
+                Content = (dto.Content ?? string.Empty).Trim(),
+                UserId = currentUserId,
+                LikeCount = 0,
+                DislikeCount = 0,
+                Status = ForumCommentStatus.Visible,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
 
             await _repo.AddAsync(entity, ct);
             await _repo.SaveChangesAsync(ct);
@@ -44,9 +77,7 @@ namespace BLL.Services
         // ====================== Read ======================
 
         public async Task<ForumCommentResponseDTO?> GetByIdAsync(
-            ulong id,
-            bool deep = false,
-            CancellationToken ct = default)
+            ulong id, bool deep = false, CancellationToken ct = default)
         {
             if (!deep)
             {
@@ -55,7 +86,6 @@ namespace BLL.Services
 
                 var dto = _mapper.Map<ForumCommentResponseDTO>(entity);
 
-                // children 1 cấp (nếu repo đã Include InverseParent)
                 if (entity.InverseParent?.Count > 0)
                 {
                     dto.Children = _mapper.Map<List<ForumCommentResponseDTO>>(
@@ -77,23 +107,16 @@ namespace BLL.Services
         }
 
         public async Task<PagedResponse<ForumCommentResponseDTO>> GetByPostAsync(
-            ulong postId,
-            int page,
-            int pageSize,
-            bool deep = false,
-            CancellationToken ct = default)
+            ulong postId, int page, int pageSize, bool deep = false, CancellationToken ct = default)
         {
             if (!deep)
             {
                 var (roots, total) = await _repo.GetByPostIdAsync(
-                    postId, page, pageSize,
-                    includeChildren: true,
-                    status: ForumCommentStatus.Visible,
-                    ct: ct);
+                    postId, page, pageSize, includeChildren: true,
+                    status: ForumCommentStatus.Visible, ct: ct);
 
                 var rootDtos = roots.Select(r => _mapper.Map<ForumCommentResponseDTO>(r)).ToList();
 
-                // map children 1 cấp
                 for (int i = 0; i < roots.Count; i++)
                 {
                     var children = roots[i].InverseParent
@@ -109,20 +132,15 @@ namespace BLL.Services
             else
             {
                 var (roots, total) = await _repo.GetByPostIdAsync(
-                    postId, page, pageSize,
-                    includeChildren: false,
-                    status: ForumCommentStatus.Visible,
-                    ct: ct);
+                    postId, page, pageSize, includeChildren: false,
+                    status: ForumCommentStatus.Visible, ct: ct);
 
                 var list = new List<ForumCommentResponseDTO>();
 
                 foreach (var root in roots)
                 {
-                    var flat = await _repo.GetThreadAsync(
-                        root.Id, null, ForumCommentStatus.Visible, ct);
-
-                    if (flat.Count > 0)
-                        list.Add(BuildTree(flat, root.Id));
+                    var flat = await _repo.GetThreadAsync(root.Id, null, ForumCommentStatus.Visible, ct);
+                    if (flat.Count > 0) list.Add(BuildTree(flat, root.Id));
                 }
 
                 return ToPagedResponse(list, total, page, pageSize);
@@ -130,21 +148,15 @@ namespace BLL.Services
         }
 
         public async Task<IReadOnlyList<ForumCommentResponseDTO>> GetChildrenAsync(
-            ulong parentId,
-            CancellationToken ct = default)
+            ulong parentId, CancellationToken ct = default)
         {
             var items = await _repo.GetChildrenAsync(parentId, ForumCommentStatus.Visible, ct);
             return _mapper.Map<IReadOnlyList<ForumCommentResponseDTO>>(items);
         }
 
         public async Task<PagedResponse<ForumCommentResponseDTO>> SearchAsync(
-            string? keyword,
-            ulong? postId,
-            ulong? userId,
-            ForumCommentStatus? status,
-            int page,
-            int pageSize,
-            CancellationToken ct = default)
+            string? keyword, ulong? postId, ulong? userId, ForumCommentStatus? status,
+            int page, int pageSize, CancellationToken ct = default)
         {
             var (items, total) = await _repo.SearchAsync(
                 keyword ?? string.Empty, postId, userId, status, page, pageSize, ct);
@@ -154,27 +166,21 @@ namespace BLL.Services
         }
 
         public Task<int> CountByPostAsync(
-            ulong postId,
-            ForumCommentStatus? status = ForumCommentStatus.Visible,
-            CancellationToken ct = default)
+            ulong postId, ForumCommentStatus? status = ForumCommentStatus.Visible, CancellationToken ct = default)
             => _repo.CountByPostAsync(postId, status, ct);
 
         // ====================== Update ======================
 
         public async Task<bool> UpdateContentAsync(
-            ulong id,
-            ForumCommentUpdateDTO dto,
-            ulong currentUserId,
-            bool isModerator = false,
-            CancellationToken ct = default)
+            ulong id, ForumCommentUpdateDTO dto, ulong currentUserId, bool isModerator = false, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id, ct);
             if (entity == null) return false;
-
-            // quyền: tác giả hoặc mod
             if (entity.UserId != currentUserId && !isModerator) return false;
 
-            entity.Content = dto.Content;
+            entity.Content = (dto.Content ?? string.Empty).Trim();
+            entity.UpdatedAt = DateTime.UtcNow;
+
             await _repo.UpdateAsync(entity, ct);
             await _repo.SaveChangesAsync(ct);
             return true;
@@ -183,13 +189,9 @@ namespace BLL.Services
         // ====================== Moderation ======================
 
         public async Task<bool> SetStatusAsync(
-            ForumCommentSetStatusDTO dto,
-            ulong actingUserId,
-            bool isModerator = false,
-            CancellationToken ct = default)
+            ForumCommentSetStatusDTO dto, ulong actingUserId, bool isModerator = false, CancellationToken ct = default)
         {
             if (!isModerator) return false;
-
             var ok = await _repo.SetStatusAsync(dto.Id, dto.Status, ct);
             if (ok) await _repo.SaveChangesAsync(ct);
             return ok;
@@ -198,21 +200,14 @@ namespace BLL.Services
         // ====================== Delete ======================
 
         public async Task<bool> DeleteAsync(
-            ulong id,
-            bool hardDelete,
-            ulong actingUserId,
-            bool isModerator = false,
-            CancellationToken ct = default)
+            ulong id, bool hardDelete, ulong actingUserId, bool isModerator = false, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id, ct);
             if (entity == null) return false;
-
             if (entity.UserId != actingUserId && !isModerator) return false;
 
-            if (hardDelete)
-                await _repo.DeleteAsync(id, ct);
-            else
-                await _repo.SoftDeleteAsync(id, ct);
+            if (hardDelete) await _repo.DeleteAsync(id, ct);
+            else await _repo.SoftDeleteAsync(id, ct);
 
             await _repo.SaveChangesAsync(ct);
             return true;
@@ -258,19 +253,13 @@ namespace BLL.Services
             foreach (var n in nodes)
             {
                 if (n.ParentId.HasValue && dict.TryGetValue(n.ParentId.Value, out var parentDto))
-                {
                     parentDto.Children.Add(dict[n.Id]);
-                }
             }
 
             void SortRec(ForumCommentResponseDTO node)
             {
-                node.Children = node.Children
-                    .OrderBy(c => c.CreatedAt)
-                    .ToList();
-
-                foreach (var ch in node.Children)
-                    SortRec(ch);
+                node.Children = node.Children.OrderBy(c => c.CreatedAt).ToList();
+                foreach (var ch in node.Children) SortRec(ch);
             }
 
             var root = dict[rootId];

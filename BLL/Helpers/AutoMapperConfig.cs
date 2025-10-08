@@ -4,6 +4,7 @@ using BLL.DTO.Cart;
 using BLL.DTO.CO2;
 using BLL.DTO.Courier;
 using BLL.DTO.FarmProfile;
+using BLL.DTO.ForumComment;
 using BLL.DTO.ForumPost;
 using BLL.DTO.Order;
 using BLL.DTO.ProductCategory;
@@ -135,5 +136,12 @@ public class AutoMapperConfig : Profile
 
         CreateMap<ForumPost, ForumPostResponseDTO>();
 
+
+        // ForumComment mappings 
+        CreateMap<ForumCommentCreateDTO, ForumComment>()
+            .ForMember(d => d.ParentId,
+                o => o.MapFrom(s => s.ParentId.HasValue && s.ParentId.Value == 0 ? (ulong?)null : s.ParentId));
+
+        CreateMap<ForumComment, ForumCommentResponseDTO>();
     }
 }
