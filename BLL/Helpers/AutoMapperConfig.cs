@@ -107,15 +107,15 @@ public class AutoMapperConfig : Profile
                 { "Length", src.DimensionsCm.Length }
             }));
         CreateMap<ProductRegistration, ProductRegistrationReponseDTO>()
-    .ForMember(dest => dest.DimensionsCm, opt => opt.MapFrom(src => new DimensionsDTO
-    {
-        Width = src.DimensionsCm.ContainsKey("Width") ? Convert.ToDecimal(src.DimensionsCm["Width"]) : 0,
-        Height = src.DimensionsCm.ContainsKey("Height") ? Convert.ToDecimal(src.DimensionsCm["Height"]) : 0,
-        Length = src.DimensionsCm.ContainsKey("Length") ? Convert.ToDecimal(src.DimensionsCm["Length"]) : 0
-    }));
+            .ForMember(dest => dest.DimensionsCm, opt => opt.MapFrom(src => new DimensionsDTO
+            {
+                Width = src.DimensionsCm.ContainsKey("Width") ? Convert.ToDecimal(src.DimensionsCm["Width"]) : 0,
+                Height = src.DimensionsCm.ContainsKey("Height") ? Convert.ToDecimal(src.DimensionsCm["Height"]) : 0,
+                Length = src.DimensionsCm.ContainsKey("Length") ? Convert.ToDecimal(src.DimensionsCm["Length"]) : 0
+            }));
         CreateMap<DAL.Data.Models.Order, OrderUpdateDTO>().ReverseMap();
 
-
+        CreateMap<ProductRegistrationUpdateDTO, ProductRegistration>();
 
         // ForumCategory mappings
         CreateMap<ForumCategory, ForumCategoryResponseDTO>().ReverseMap();

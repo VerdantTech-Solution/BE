@@ -1,4 +1,7 @@
-﻿using DAL.Data;
+﻿using BLL.DTO.Media;
+using BLL.DTO.MediaLink;
+using DAL.Data;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -26,11 +29,17 @@ namespace BLL.DTO.ProductRegistration
 
         public string? EnergyEfficiencyRating { get; set; }
 
-        public Dictionary<string, object>? Specifications { get; set; } 
+        public Dictionary<string, object>? Specifications { get; set; }
 
         public string? ManualUrls { get; set; }
 
-        public string? Images { get; set; }
+        public string? PublicUrl { get; set; }
+
+        ////public string? Images { get; set; }
+        public List<MediaLinkItemDTO> Images { get; set; } = new();
+
+        public List<MediaUploadDTO> Gallery { get; set; } = new();
+
 
         public int WarrantyMonths { get; set; } = 12;
 
@@ -38,16 +47,17 @@ namespace BLL.DTO.ProductRegistration
 
         public Dictionary<string, object>? DimensionsCm { get; set; } 
 
-        public ProductRegistrationStatus Status { get; set; } = ProductRegistrationStatus.Pending;
+        public ProductRegistrationStatus Status { get; set; }
 
         public string? RejectionReason { get; set; }
 
         public ulong? ApprovedBy { get; set; }
 
+        public DateTime? ApprovedAt { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
 
-        public DateTime? ApprovedAt { get; set; }
     }
 }

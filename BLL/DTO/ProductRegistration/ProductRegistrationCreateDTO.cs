@@ -1,4 +1,5 @@
 ﻿using DAL.Data;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,6 +12,8 @@ namespace BLL.DTO.ProductRegistration
 {
     public class ProductRegistrationCreateDTO
     {
+        [Required] public ulong VendorId { get; set; }
+
         [Required(ErrorMessage = "Danh mục sản phẩm là bắt buộc")]
         public ulong CategoryId { get; set; }
 
@@ -35,11 +38,12 @@ namespace BLL.DTO.ProductRegistration
         [Required(ErrorMessage = "Thông số kỹ thuật là bắt buộc")]
         public Dictionary<string, object> Specifications { get; set; } = new();
 
-        [StringLength(1000, ErrorMessage = "Liên kết hướng dẫn sử dụng không được vượt quá 1000 ký tự")]
-        public string? ManualUrls { get; set; }
+        //[StringLength(1000, ErrorMessage = "Liên kết hướng dẫn sử dụng không được vượt quá 1000 ký tự")]
+        //public string? ManualUrls { get; set; }
 
-        [StringLength(1000, ErrorMessage = "Danh sách hình ảnh không được vượt quá 1000 ký tự")]
-        public string? Images { get; set; }
+        //[StringLength(1000, ErrorMessage = "Danh sách hình ảnh không được vượt quá 1000 ký tự")]
+        //public string? Images { get; set; }
+        //[StringLength(500)] public string? PublicUrl { get; set; }
 
         [Required(ErrorMessage = "Thời gian bảo hành là bắt buộc")]
         public int WarrantyMonths { get; set; } = 12;
@@ -48,7 +52,18 @@ namespace BLL.DTO.ProductRegistration
         public decimal? WeightKg { get; set; }
 
         [Required(ErrorMessage = "Kích thước sản phẩm là bắt buộc")]
-        public required DimensionsDTO DimensionsCm { get; set; } 
+        public required DimensionsDTO DimensionsCm { get; set; }
+
+        //// MEDIA
+        //public IFormFile? CoverImage { get; set; }
+        //public List<IFormFile>? Images { get; set; } = new();
+
+        //// PDF manual
+        //public IFormFile? ManualPdf { get; set; }
+
+        // Upload (multipart/form-data)
+        public IFormFile? ManualPdf { get; set; }                         // PDF hướng dẫn
+        public List<IFormFile>? Images { get; set; }                      // Gallery ảnh
 
     }
 }
