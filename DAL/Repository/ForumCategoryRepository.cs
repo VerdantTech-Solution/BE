@@ -15,6 +15,16 @@ namespace DAL.Repository
         {
             _context = context;
         }
+        public async Task<IReadOnlyList<ForumCategory>> GetAllAsync( bool useNoTracking = true, CancellationToken cancellationToken = default)
+        {
+            var query = _context.ForumCategories.AsQueryable();
+            if (useNoTracking) query = query.AsNoTracking();
+
+            // Sắp xếp an toàn theo Id (nếu có trường SortOrder bạn có thể thay thế)
+            return await query
+                .OrderBy(c => c.Id)
+                .ToListAsync(cancellationToken);
+        }
 
         public async Task<ForumCategory?> GetByIdAsync(ulong id,bool useNoTracking = true,CancellationToken cancellationToken = default)
         {

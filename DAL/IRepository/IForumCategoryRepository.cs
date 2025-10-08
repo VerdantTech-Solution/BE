@@ -6,7 +6,7 @@ namespace DAL.IRepository
 {
     public interface IForumCategoryRepository
     {
-   
+        Task<IReadOnlyList<ForumCategory>> GetAllAsync(bool useNoTracking = true, CancellationToken cancellationToken = default);
         Task<ForumCategory?> GetByIdAsync(ulong id,bool useNoTracking = true,CancellationToken cancellationToken = default);
         // Tạo mới ForumCategory
         Task<ForumCategory> CreateAsync(ForumCategory category,CancellationToken cancellationToken = default);

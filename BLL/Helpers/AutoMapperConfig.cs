@@ -4,6 +4,7 @@ using BLL.DTO.Cart;
 using BLL.DTO.CO2;
 using BLL.DTO.Courier;
 using BLL.DTO.FarmProfile;
+using BLL.DTO.ForumCategory;
 using BLL.DTO.ForumComment;
 using BLL.DTO.ForumPost;
 using BLL.DTO.Order;
@@ -116,6 +117,10 @@ public class AutoMapperConfig : Profile
 
 
 
+        // ForumCategory mappings
+        CreateMap<ForumCategory, ForumCategoryResponseDTO>().ReverseMap();
+        CreateMap<ForumCategoryCreateDTO, ForumCategory>().ReverseMap();
+        CreateMap<ForumCategoryUpdateDTO, ForumCategory>().ReverseMap();
 
 
         // ForumPost mappings 

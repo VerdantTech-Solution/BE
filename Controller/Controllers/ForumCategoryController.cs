@@ -19,6 +19,16 @@ namespace Controller.Controllers
             _service = service;
         }
 
+
+        [HttpGet]
+        [AllowAnonymous]
+        [EndpointSummary("Get All Forum Category")]
+        [EndpointDescription("List tất cả danh mục thảo luận trong diễn đàn.")]
+        public async Task<ActionResult<IReadOnlyList<ForumCategoryResponseDTO>>> GetAll(CancellationToken ct)
+        {
+            var data = await _service.GetAllAsync(ct);
+            return Ok(data);
+        }
         /// <summary>Tạo mới forum category</summary>
         [HttpPost]
         [EndpointSummary("Create Forum Category")]

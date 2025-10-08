@@ -20,6 +20,11 @@ namespace BLL.Services
             _mapper = mapper;
         }
 
+        public async Task<IReadOnlyList<ForumCategoryResponseDTO>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            var entities = await _repo.GetAllAsync(true, cancellationToken);
+            return _mapper.Map<IReadOnlyList<ForumCategoryResponseDTO>>(entities);
+        }
         public async Task<ForumCategoryResponseDTO> CreateAsync(ForumCategoryCreateDTO dto,CancellationToken cancellationToken = default)
         {
             var entity = _mapper.Map<ForumCategory>(dto);
