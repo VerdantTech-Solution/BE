@@ -12,7 +12,7 @@ namespace BLL.Interfaces
     {
         Task<ProductRegistrationReponseDTO> UpdateAsync(ProductRegistrationUpdateDTO dto, string? manualUrl, string? manualPublicUrl, IReadOnlyList<MediaLinkItemDTO> addImages, IReadOnlyList<string> removeImagePublicIds, CancellationToken ct = default);
 
-        Task<ProductRegistrationReponseDTO> CreateAsync( ProductRegistrationCreateDTO dto, string? manualUrl, string? manualPublicUrl, IReadOnlyList<MediaLinkItemDTO> images, CancellationToken ct = default)
+        Task<ProductRegistrationReponseDTO> CreateAsync(ProductRegistrationCreateDTO dto, string? manualUrl, string? manualPublicUrl, IReadOnlyList<MediaLinkItemDTO> images, CancellationToken ct = default);
         Task<bool> DeleteAsync(ulong id, CancellationToken ct = default);
 
         Task<ProductRegistrationReponseDTO?> GetByIdAsync(ulong id, CancellationToken ct = default);

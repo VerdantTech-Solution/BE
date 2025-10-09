@@ -67,7 +67,8 @@ builder.Services.AddScoped<IRepository<Fertilizer>, Repository<Fertilizer>>();
 builder.Services.AddScoped<IRepository<EnergyUsage>, Repository<EnergyUsage>>();
 builder.Services.AddScoped<IRepository<EnvironmentalDatum>, Repository<EnvironmentalDatum>>();
 builder.Services.AddScoped<IRepository<ProductCategory>, Repository<ProductCategory>>();
-builder.Services.AddScoped<IRepository<Product>, Repository<Product>>();
+builder.Services.AddScoped<IRepository<ProductRegistration>, Repository<ProductRegistration>>();
+//builder.Services.AddScoped<IRepository<Product>, Repository<Product>>();
 builder.Services.AddScoped<IRepository<Cart>, Repository<Cart>>();
 builder.Services.AddScoped<IRepository<CartItem>, Repository<CartItem>>();
 builder.Services.AddScoped<IRepository<Order>, Repository<Order>>();
@@ -75,7 +76,9 @@ builder.Services.AddScoped<IRepository<OrderDetail>, Repository<OrderDetail>>();
 builder.Services.AddScoped<IRepository<ForumCategory>, Repository<ForumCategory>>();
 builder.Services.AddScoped<IRepository<ForumPost>, Repository<ForumPost>>();
 builder.Services.AddScoped<IRepository<ForumComment>, Repository<ForumComment>>();
-builder.Services.AddScoped<IRepository<ProductRegistration>, Repository<ProductRegistration>>();
+
+
+//Upload
 builder.Services.AddScoped<IRepository<MediaLink>, Repository<MediaLink>>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
@@ -86,14 +89,15 @@ builder.Services.AddScoped<IFertilizerRepository, FertilizerRepository>();
 builder.Services.AddScoped<IEnergyUsageRepository, EnergyUsageRepository>();
 builder.Services.AddScoped<IEnvironmentalDataRepository, EnvironmentalDataRepository>();
 builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductRegistrationRepository, ProductRegistrationRepository>();
+//builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
 builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
 builder.Services.AddScoped<IForumCommentRepository,ForumCommentRepository>();
-builder.Services.AddScoped<IProductRegistrationRepository, ProductRegistrationRepository>();
+
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -102,7 +106,8 @@ builder.Services.AddScoped<IWeatherService, WeatherService>();
 builder.Services.AddScoped<ICO2Service, CO2Service>();
 builder.Services.AddScoped<ICourierService, CourierService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
-builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRegistrationService, ProductRegistrationService>();
+//builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
