@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Cloudinary;
 
-public record UploadResultDto(string PublicId, string Url);
+public record UploadResultDto(string PublicUrl, string Url);
 
 public interface ICloudinaryService
 {

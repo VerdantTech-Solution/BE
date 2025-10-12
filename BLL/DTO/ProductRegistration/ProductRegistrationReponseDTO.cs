@@ -31,21 +31,18 @@ namespace BLL.DTO.ProductRegistration
 
         public Dictionary<string, object>? Specifications { get; set; }
 
-        public string? ManualUrls { get; set; }
-
-        public string? PublicUrl { get; set; }
-
-        ////public string? Images { get; set; }
-        public List<MediaLinkItemDTO> Images { get; set; } = new();
-
-        public List<MediaUploadDTO> Gallery { get; set; } = new();
-
-
         public int WarrantyMonths { get; set; } = 12;
 
         public decimal? WeightKg { get; set; }
 
-        public Dictionary<string, object>? DimensionsCm { get; set; } 
+        public Dictionary<string, object>? DimensionsCm { get; set; }
+
+        public string? ManualUrl { get; set; }
+        public string? ManualPublicUrl { get; set; }
+
+        // MEDIA
+        public List<MediaLinkItemDTO> Images { get; set; } = new();
+        public List<MediaLinkItemDTO> Certificates { get; set; } = new();
 
         public ProductRegistrationStatus Status { get; set; }
 

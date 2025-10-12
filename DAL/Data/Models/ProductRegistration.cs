@@ -52,6 +52,7 @@ public partial class ProductRegistration
     public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
 
     public ProductRegistrationStatus Status { get; set; } = ProductRegistrationStatus.Pending;
+    //public ProductRegistrationStatus Status { get; set; } 
 
     [StringLength(500)]
     public string? RejectionReason { get; set; }

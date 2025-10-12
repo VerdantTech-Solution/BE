@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BLL.DTO.MediaLink;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using static BLL.DTO.Product.ProductUpdateDTO;
 
 namespace BLL.DTO.ProductRegistration
 {
@@ -26,17 +28,19 @@ namespace BLL.DTO.ProductRegistration
 
         public int WarrantyMonths { get; set; } = 12;
         public decimal? WeightKg { get; set; }
-        public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
+        //public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
+        public required DimensionsDTO DimensionsCm { get; set; }
 
 
-        // Upload additions/removals
-        public List<IFormFile>? AddImages { get; set; }
+        public string? ManualUrl { get; set; }
+        public string? ManualPublicUrl { get; set; }
+
+        // Ảnh SP
+        public List<MediaLinkItemDTO>? AddProductImages { get; set; }
         public List<string>? RemoveImagePublicIds { get; set; }
 
-        public IFormFile? ManualPdf { get; set; }
-
-        // Certificates update
-        public List<IFormFile>? AddCertificates { get; set; }
+        // File chứng chỉ
+        public List<MediaLinkItemDTO>? AddCertificateFiles { get; set; }
         public List<string>? RemoveCertificatePublicIds { get; set; }
     }
 }
