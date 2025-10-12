@@ -29,20 +29,14 @@ namespace BLL.DTO.ProductRegistration
         public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
 
 
-        //// MEDIA
-        //public IFormFile? CoverImage { get; set; }
-        //public List<IFormFile>? Images { get; set; } = new();
+        // Upload additions/removals
+        public List<IFormFile>? AddImages { get; set; }
+        public List<string>? RemoveImagePublicIds { get; set; }
 
-        //// Xoá ảnh theo publicId (nếu có)
-        //public List<string>? RemovePublicIds { get; set; } = new();
+        public IFormFile? ManualPdf { get; set; }
 
-        //// PDF manual (nếu muốn thay)
-        //public IFormFile? ManualPdf { get; set; }
-
-        // Upload (multipart/form-data)
-        public IFormFile? ManualPdf { get; set; }         // thay manual
-        public List<IFormFile>? Images { get; set; }      // thêm ảnh
-        public List<string>? RemoveImagePublicIds { get; set; } // xóa ảnh theo public_id
-
+        // Certificates update
+        public List<IFormFile>? AddCertificates { get; set; }
+        public List<string>? RemoveCertificatePublicIds { get; set; }
     }
 }

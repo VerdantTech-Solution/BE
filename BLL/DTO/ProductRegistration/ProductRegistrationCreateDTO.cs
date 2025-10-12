@@ -56,14 +56,12 @@ namespace BLL.DTO.ProductRegistration
 
         //// MEDIA
         //public IFormFile? CoverImage { get; set; }
-        //public List<IFormFile>? Images { get; set; } = new();
+        public List<IFormFile>? Images { get; set; }
 
         //// PDF manual
         //public IFormFile? ManualPdf { get; set; }
-
         // Upload (multipart/form-data)
         public IFormFile? ManualPdf { get; set; }                         // PDF hướng dẫn
-        public List<IFormFile>? Images { get; set; }                      // Gallery ảnh
-
+        public List<IFormFile>? Certificates { get; set; }
     }
 }
