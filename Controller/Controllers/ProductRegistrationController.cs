@@ -10,6 +10,7 @@ using BLL.DTO.MediaLink;
 using BLL.DTO.ProductRegistration;
 using BLL.Interfaces;
 using Infrastructure.Cloudinary;
+using BLL.DTO.Product; // cần cho ProductUpdateDTO.DimensionsDTO
 
 namespace Controller.Controllers
 {
@@ -53,7 +54,7 @@ namespace Controller.Controllers
             long vendorId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
             => Ok(await _service.GetByVendorAsync((ulong)vendorId, page, pageSize, ct));
 
-        // ===== CREATE (multipart/form-data, dùng DTO có sẵn) =====
+        // ===== CREATE (multipart/form-data) =====
 
         [HttpPost]
         [Consumes("multipart/form-data")]
@@ -63,14 +64,35 @@ namespace Controller.Controllers
             [FromForm] CreateFormRequest req,
             CancellationToken ct = default)
         {
-            var dto = req.Data; // dùng đúng ProductRegistrationCreateDTO của bạn
+            // Map về DTO “chuẩn” để đảm bảo đúng kiểu
+            var dto = new ProductRegistrationCreateDTO
+            {
+                VendorId = req.Data.VendorId,
+                CategoryId = req.Data.CategoryId,
+                ProposedProductCode = req.Data.ProposedProductCode,
+                ProposedProductName = req.Data.ProposedProductName,
+                Description = req.Data.Description,
+                UnitPrice = req.Data.UnitPrice,
+                // int? -> string (service/DB đang dùng string)
+                EnergyEfficiencyRating = req.Data.EnergyEfficiencyRating?.ToString(),
+                Specifications = req.Data.Specifications,
+                WarrantyMonths = req.Data.WarrantyMonths,
+                WeightKg = req.Data.WeightKg,
+                // Dictionary -> DimensionsDTO
+                DimensionsCm = new ProductUpdateDTO.DimensionsDTO
+                {
+                    Width = req.Data.DimensionsCmWidth ?? 0,
+                    Height = req.Data.DimensionsCmHeight ?? 0,
+                    Length = req.Data.DimensionsCmLength ?? 0
+                }
+            };
 
-            // Manual PDF (tùy chọn) – server upload rồi ghi đè vào DTO
+            // Manual PDF (tùy chọn)
             if (req.ManualFile is not null)
             {
                 var up = await _cloud.UploadAsync(req.ManualFile, "product-registrations/manuals", ct);
-                dto.ManualUrl = up.Url;       // lưu DB
-                dto.ManualPublicUrl = up.PublicUrl; // trả về client
+                dto.ManualUrl = up.Url;
+                dto.ManualPublicUrl = up.PublicUrl;
             }
 
             // Ảnh sản phẩm (tùy chọn)
@@ -103,7 +125,7 @@ namespace Controller.Controllers
             return Ok(created);
         }
 
-        // ===== UPDATE (multipart/form-data, dùng DTO có sẵn) =====
+        // ===== UPDATE (multipart/form-data) =====
 
         [HttpPut("{id:long}")]
         [Consumes("multipart/form-data")]
@@ -116,7 +138,28 @@ namespace Controller.Controllers
         {
             if ((ulong)id != req.Data.Id) return BadRequest("Id không khớp.");
 
-            var dto = req.Data; // dùng đúng ProductRegistrationUpdateDTO của bạn
+            var dto = new ProductRegistrationUpdateDTO
+            {
+                Id = req.Data.Id,
+                VendorId = req.Data.VendorId,
+                CategoryId = req.Data.CategoryId,
+                ProposedProductCode = req.Data.ProposedProductCode,
+                ProposedProductName = req.Data.ProposedProductName,
+                Description = req.Data.Description,
+                UnitPrice = req.Data.UnitPrice,
+                EnergyEfficiencyRating = req.Data.EnergyEfficiencyRating?.ToString(), // int? -> string
+                Specifications = req.Data.Specifications,
+                WarrantyMonths = req.Data.WarrantyMonths,
+                WeightKg = req.Data.WeightKg,
+                DimensionsCm = new ProductUpdateDTO.DimensionsDTO
+                {
+                    Width = req.Data.DimensionsCmWidth ?? 0,
+                    Height = req.Data.DimensionsCmHeight ?? 0,
+                    Length = req.Data.DimensionsCmLength ?? 0
+                },
+                RemoveImagePublicIds = req.RemoveImagePublicIds ?? new List<string>(),
+                RemoveCertificatePublicIds = req.RemoveCertificatePublicIds ?? new List<string>()
+            };
 
             // Manual mới (nếu có)
             if (req.ManualFile is not null)
@@ -152,10 +195,6 @@ namespace Controller.Controllers
                 }).ToList();
             }
 
-            // Danh sách publicId cần xoá (nếu có)
-            dto.RemoveImagePublicIds = req.RemoveImagePublicIds ?? new List<string>();
-            dto.RemoveCertificatePublicIds = req.RemoveCertificatePublicIds ?? new List<string>();
-
             var updated = await _service.UpdateAsync(dto, ct);
             return Ok(updated);
         }
@@ -180,7 +219,7 @@ namespace Controller.Controllers
         public async Task<IActionResult> Delete(long id, CancellationToken ct = default)
             => (await _service.DeleteAsync((ulong)id, ct)) ? NoContent() : NotFound();
 
-        // ===== Request models: chỉ gom các field upload, Data là DTO sẵn có =====
+        // ===== Request models: gom field upload + Data là DTO sẵn có =====
         public sealed class CreateFormRequest
         {
             [FromForm] public ProductRegistrationCreateDTO Data { get; set; } = null!;
