@@ -100,71 +100,22 @@
 //            if (product == null)
 //                throw new KeyNotFoundException("Không tìm thấy sản phẩm");
 
-//            var updated = _mapper.Map(dto, product);
-//            var result = await _productRepository.UpdateProductAsync(updated, cancellationToken);
-//            return _mapper.Map<ProductResponseDTO>(result);
-//        }
+            var updatedProduct = _mapper.Map(dto, product);
 
-//        #endregion
+            var result = await _productRepository.UpdateProductAsync(updatedProduct, cancellationToken);
 
-//        #region --- MediaLink handlers ---
+            var response = _mapper.Map<ProductResponseDTO>(result);
+            return response;
+        }
 
-//        public async Task AddProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct)
-//        {
-//            if (uploads == null || uploads.Count == 0) return;
+        public async Task<IReadOnlyList<ProductRegistrationReponseDTO?>> GetAllProductByVendorIdAsync(ulong vendorId, CancellationToken cancellationToken = default)
+        {
 
-//            var exists = await _productRepository.GetProductByIdAsync(productId, true, ct);
-//            if (exists == null)
-//                throw new KeyNotFoundException("Sản phẩm không tồn tại");
-
-//            var maxSort = await _db.MediaLinks
-//                .Where(m => m.OwnerType == MediaOwnerType.Product && m.OwnerId == productId)
-//                .Select(m => (int?)m.SortOrder)
-//                .MaxAsync(ct) ?? -1;
-
-//            var links = uploads.Select((u, idx) => new MediaLink
-//            {
-//                OwnerType = MediaOwnerType.Product,
-//                OwnerId = productId,
-//                ImageUrl = u.Url,
-//                ImagePublicId = u.PublicId,
-//                Purpose = MediaPurpose.None,
-//                SortOrder = maxSort + 1 + idx,
-//                CreatedAt = DateTime.UtcNow,
-//                UpdatedAt = DateTime.UtcNow
-//            }).ToList();
-
-//            await _db.MediaLinks.AddRangeAsync(links, ct);
-//            await _db.SaveChangesAsync(ct);
-//        }
-
-//        public async Task ReplaceProductImagesAsync(ulong productId, IReadOnlyList<MediaUploadDTO> uploads, CancellationToken ct)
-//        {
-//            if (uploads == null || uploads.Count == 0) return;
-
-//            var olds = await _db.MediaLinks
-//                .Where(m => m.OwnerType == MediaOwnerType.Product && m.OwnerId == productId)
-//                .ToListAsync(ct);
-
-//            _db.MediaLinks.RemoveRange(olds);
-//            await _db.SaveChangesAsync(ct);
-
-//            var news = uploads.Select((u, idx) => new MediaLink
-//            {
-//                OwnerType = MediaOwnerType.Product,
-//                OwnerId = productId,
-//                ImageUrl = u.Url,
-//                ImagePublicId = u.PublicId,
-//                Purpose = MediaPurpose.None,
-//                SortOrder = idx,
-//                CreatedAt = DateTime.UtcNow,
-//                UpdatedAt = DateTime.UtcNow
-//            }).ToList();
-
-//            await _db.MediaLinks.AddRangeAsync(news, ct);
-//            await _db.SaveChangesAsync(ct);
-//        }
-
-//        #endregion
-//    }
-//}
+            if (vendorId == 0)
+                throw new UnauthorizedAccessException("Người dùng chưa đăng nhập hoặc không hợp lệ");
+            var list =  await _productRegistrationRepository.GetProductRegistrationByVendorIdAsync(vendorId, useNoTracking: true, cancellationToken);
+            var response = _mapper.Map<IReadOnlyList<ProductRegistrationReponseDTO?>>(list);
+            return response;
+        }
+    }
+}

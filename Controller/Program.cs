@@ -104,12 +104,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFarmProfileService, FarmProfileService>();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
 builder.Services.AddScoped<ICO2Service, CO2Service>();
-builder.Services.AddScoped<ICourierService, CourierService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddScoped<IProductRegistrationService, ProductRegistrationService>();
 //builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
 builder.Services.AddScoped<IForumPostService,ForumPostService>();
 builder.Services.AddScoped<IForumCommentService,ForumCommentService>();
@@ -210,7 +211,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());        
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
