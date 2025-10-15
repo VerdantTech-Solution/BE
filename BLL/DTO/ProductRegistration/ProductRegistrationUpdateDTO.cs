@@ -27,6 +27,8 @@ namespace BLL.DTO.ProductRegistration
         //[StringLength(500)] public string? PublicUrl { get; set; }
 
         public int WarrantyMonths { get; set; } = 12;
+
+        [Range(0, 50000, ErrorMessage = "Khối lượng sản phẩm phải từ 0 đến 50.000 gram")]
         public decimal? WeightKg { get; set; }
         //public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
         public required DimensionsDTO DimensionsCm { get; set; }

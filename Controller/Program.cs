@@ -80,6 +80,7 @@ builder.Services.AddScoped<IRepository<ForumComment>, Repository<ForumComment>>(
 
 //Upload
 builder.Services.AddScoped<IRepository<MediaLink>, Repository<MediaLink>>();
+builder.Services.AddScoped<IRepository<ProductCertificate>, Repository<ProductCertificate>>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -98,6 +99,7 @@ builder.Services.AddScoped<IForumCategoryRepository, ForumCategoryRepository>();
 builder.Services.AddScoped<IForumPostRepository, ForumPostRepository>();
 builder.Services.AddScoped<IForumCommentRepository,ForumCommentRepository>();
 
+builder.Services.AddScoped<IProductCertificateRepository, ProductCertificateRepository>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -114,6 +116,7 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IForumCategoryService,ForumCategoryService>();
 builder.Services.AddScoped<IForumPostService,ForumPostService>();
 builder.Services.AddScoped<IForumCommentService,ForumCommentService>();
+builder.Services.AddScoped<IProductCertificateService, ProductCertificateService>();
 
 // Infrastructure registrations
 builder.Services.AddInfrastructure();
