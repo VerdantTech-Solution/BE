@@ -1,105 +1,104 @@
-﻿using AutoMapper;
-using BLL.DTO.Media;
-using BLL.DTO;
-using BLL.DTO.Product;
-using BLL.DTO.ProductCategory;
-using BLL.DTO.ProductRegistration;
-using BLL.DTO.User;
-using BLL.Interfaces;
-using DAL.Data;
-using DAL.Data.Models;
-using DAL.IRepository;
-using Microsoft.EntityFrameworkCore;
-using DAL.Repository;
+//using AutoMapper;
+//using BLL.DTO.Media;
+//using BLL.DTO.Product;
+//using BLL.DTO.ProductCategory;
+//using BLL.DTO.ProductRegistration;
+//using BLL.Interfaces;
+//using DAL.Data;
+//using DAL.Data.Models;
+//using DAL.IRepository;
+//using Microsoft.EntityFrameworkCore;
 
-namespace BLL.Services
-{
-    public class ProductService : IProductService
-    {
-        private readonly IProductRepository _productRepository;
-        private readonly IProductRegistrationRepository _productRegistrationRepository;
-        private readonly IProductCategoryRepository _productCategoryRepository;
-        private readonly VerdantTechDbContext _db;
-        private readonly IMapper _mapper;
-        public ProductService(
-            IProductRepository productRepository,
-            IProductRegistrationRepository productRegistrationRepository,
-            IProductCategoryRepository productCategoryRepository,
-            IMapper mapper,
-            VerdantTechDbContext db)
-        {
-            _productRepository = productRepository;
-            _productRegistrationRepository = productRegistrationRepository;
-            _productCategoryRepository = productCategoryRepository;
-           _mapper = mapper;
-            _db = db;
-        }
+//namespace BLL.Services
+//{
+//    public class ProductService : IProductService
+//    {
+//        private readonly IProductRepository _productRepository;
+//        private readonly IProductRegistrationRepository _productRegistrationRepository;
+//        private readonly IProductCategoryRepository _productCategoryRepository;
+//        private readonly VerdantTechDbContext _db;
+//        private readonly IMapper _mapper;
 
-        #region --- Product Registration ---
-        public async Task<ProductRegistrationReponseDTO> ProductRegistrationAsync(
-            ulong currentUserId,
-            ProductRegistrationCreateDTO requestDTO,
-            CancellationToken cancellationToken = default)
-        {
-            var category = await _productCategoryRepository.GetProductCategoryByIdAsync(requestDTO.CategoryId, true, cancellationToken);
-            if (category == null || !category.IsActive)
-                throw new KeyNotFoundException("Danh mục sản phẩm không hợp lệ");
+//        public ProductService(
+//            IProductRepository productRepository,
+//            IProductRegistrationRepository productRegistrationRepository,
+//            IProductCategoryRepository productCategoryRepository,
+//            IMapper mapper,
+//            VerdantTechDbContext db)
+//        {
+//            _productRepository = productRepository;
+//            _productRegistrationRepository = productRegistrationRepository;
+//            _productCategoryRepository = productCategoryRepository;
+//            _mapper = mapper;
+//            _db = db;
+//        }
 
-            if (currentUserId == 0)
-                throw new UnauthorizedAccessException("Người dùng chưa đăng nhập hoặc không hợp lệ");
+//        #region --- Product Registration ---
+//        public async Task<ProductRegistrationReponseDTO> ProductRegistrationAsync(
+//            ulong currentUserId,
+//            ProductRegistrationCreateDTO requestDTO,
+//            CancellationToken cancellationToken = default)
+//        {
+//            var category = await _productCategoryRepository.GetProductCategoryByIdAsync(requestDTO.CategoryId, true, cancellationToken);
+//            if (category == null || !category.IsActive)
+//                throw new KeyNotFoundException("Danh mục sản phẩm không hợp lệ");
 
-            var entity = _mapper.Map<ProductRegistration>(requestDTO);
-            entity.VendorId = currentUserId;
-            entity.CreatedAt = DateTime.UtcNow;
+//            if (currentUserId == 0)
+//                throw new UnauthorizedAccessException("Người dùng chưa đăng nhập hoặc không hợp lệ");
 
-            var created = await _productRegistrationRepository.CreateProductAsync(entity, cancellationToken);
-            return _mapper.Map<ProductRegistrationReponseDTO>(created);
-        }
-        #endregion
+//            var entity = _mapper.Map<ProductRegistration>(requestDTO);
+//            entity.VendorId = currentUserId;
+//            entity.CreatedAt = DateTime.UtcNow;
 
-        #region --- Product CRUD ---
+//            var created = await _productRegistrationRepository.CreateProductAsync(entity, cancellationToken);
+//            return _mapper.Map<ProductRegistrationReponseDTO>(created);
+//        }
+//        #endregion
 
-        public async Task<IReadOnlyList<ProductResponseDTO>> GetAllProductAsync(CancellationToken cancellationToken = default)
-        {
-            var list = await _productRepository.GetAllProductAsync(cancellationToken);
-            return _mapper.Map<IReadOnlyList<ProductResponseDTO>>(list);
-        }
+//        #region --- Product CRUD ---
 
-        public async Task<IReadOnlyList<ProductResponseDTO?>> GetAllProductByCategoryIdAsync(ulong id, CancellationToken cancellationToken = default)
-        {
-            var list = await _productRepository.GetAllProductByCategoryIdAsync(id, true, cancellationToken);
-            return _mapper.Map<IReadOnlyList<ProductResponseDTO?>>(list);
-        }
+//        public async Task<IReadOnlyList<ProductResponseDTO>> GetAllProductAsync(CancellationToken cancellationToken = default)
+//        {
+//            var list = await _productRepository.GetAllProductAsync(cancellationToken);
+//            return _mapper.Map<IReadOnlyList<ProductResponseDTO>>(list);
+//        }
 
-        public async Task<ProductResponseDTO?> GetProductByIdAsync(ulong id, CancellationToken cancellationToken = default)
-        {
-            var product = await _productRepository.GetProductByIdAsync(id, true, cancellationToken);
-            if (product == null)
-                return null;
+//        public async Task<IReadOnlyList<ProductResponseDTO?>> GetAllProductByCategoryIdAsync(ulong id, CancellationToken cancellationToken = default)
+//        {
+//            var list = await _productRepository.GetAllProductByCategoryIdAsync(id, true, cancellationToken);
+//            return _mapper.Map<IReadOnlyList<ProductResponseDTO?>>(list);
+//        }
 
-            var response = _mapper.Map<ProductResponseDTO>(product);
+//        public async Task<ProductResponseDTO?> GetProductByIdAsync(ulong id, CancellationToken cancellationToken = default)
+//        {
+//            var product = await _productRepository.GetProductByIdAsync(id, true, cancellationToken);
+//            if (product == null)
+//                return null;
 
-            var images = await _db.MediaLinks
-                .AsNoTracking()
-                .Where(m => m.OwnerType == MediaOwnerType.Product && m.OwnerId == id)              .OrderBy(m => m.SortOrder)
-                .Select(m => new ProductImageDTO
-                {
-                    Url = m.ImageUrl,
-                    PublicId = m.ImagePublicId,
-                    Purpose = m.Purpose.ToString(),
-                    SortOrder = m.SortOrder
-                })
-                .ToListAsync(cancellationToken);
+//            var response = _mapper.Map<ProductResponseDTO>(product);
 
-            response.Images = images;
-            return response;
-        }
+//            var images = await _db.MediaLinks
+//                .AsNoTracking()
+//                .Where(m => m.OwnerType == MediaOwnerType.Product && m.OwnerId == id)
+//                .OrderBy(m => m.SortOrder)
+//                .Select(m => new ProductImageDTO
+//                {
+//                    Url = m.ImageUrl,
+//                    PublicId = m.ImagePublicId,
+//                    Purpose = m.Purpose.ToString(),
+//                    SortOrder = m.SortOrder
+//                })
+//                .ToListAsync(cancellationToken);
 
-        public async Task<ProductResponseDTO> UpdateProductAsync(ulong id, ProductUpdateDTO dto, CancellationToken cancellationToken = default)
-        {
-            var product = await _productRepository.GetProductByIdAsync(id, false, cancellationToken);
-            if (product == null)
-                throw new KeyNotFoundException("Không tìm thấy sản phẩm");
+//            response.Images = images;
+//            return response;
+//        }
+
+//        public async Task<ProductResponseDTO> UpdateProductAsync(ulong id, ProductUpdateDTO dto, CancellationToken cancellationToken = default)
+//        {
+//            var product = await _productRepository.GetProductByIdAsync(id, false, cancellationToken);
+//            if (product == null)
+//                throw new KeyNotFoundException("Không tìm thấy sản phẩm");
 
             var updatedProduct = _mapper.Map(dto, product);
 
@@ -117,24 +116,6 @@ namespace BLL.Services
             var list =  await _productRegistrationRepository.GetProductRegistrationByVendorIdAsync(vendorId, useNoTracking: true, cancellationToken);
             var response = _mapper.Map<IReadOnlyList<ProductRegistrationReponseDTO?>>(list);
             return response;
-        }
-        public async Task<PagedResponse<ProductRegistrationReponseDTO>> GetAllProductRegisterAsync(int page, int pageSize, CancellationToken cancellationToken = default)
-        {
-            var (product, totalCount) = await _productRegistrationRepository.GetAllProductRegistrationAsync(page, pageSize, cancellationToken);
-            var userDtos = _mapper.Map<List<ProductRegistrationReponseDTO>>(product);
-
-            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-            return new PagedResponse<ProductRegistrationReponseDTO>
-            {
-                Data = userDtos,
-                CurrentPage = page,
-                PageSize = pageSize,
-                TotalPages = totalPages,
-                TotalRecords = totalCount,
-                HasNextPage = page < totalPages,
-                HasPreviousPage = page > 1
-            };
         }
     }
 }
