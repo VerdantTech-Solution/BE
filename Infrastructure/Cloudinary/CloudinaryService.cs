@@ -11,7 +11,7 @@ public class CloudinaryService : ICloudinaryService
     private readonly CloudinaryOptions _opts;
 
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    { "jpg","jpeg","png","gif","bmp","webp","tiff","ico","svg","pdf" };
+    { "jpg","jpeg","png","gif","bmp","webp","tiff","ico","svg" };
 
     public CloudinaryService(IOptions<CloudinaryOptions> opts)
     {

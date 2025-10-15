@@ -29,7 +29,7 @@ public class UploadSingleImageAttribute : Attribute, IAsyncActionFilter
                 if (uploaded is not null)
                 {
                     http.Items["uploadedImageUrl"] = uploaded.Url;
-                    http.Items["uploadedImagePublicId"] = uploaded.PublicUrl;
+                    http.Items["uploadedImagePublicId"] = uploaded.PublicId;
                 }
             }
         }

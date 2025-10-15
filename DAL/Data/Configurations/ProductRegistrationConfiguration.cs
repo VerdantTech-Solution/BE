@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using DAL.Data.Models;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.Data.Configurations;
 
@@ -52,23 +51,14 @@ public class ProductRegistrationConfiguration : IEntityTypeConfiguration<Product
             .HasColumnType("decimal(12,2)")
             .HasColumnName("unit_price")
             .IsRequired();
-
-
-        //builder.Property(e => e.EnergyEfficiencyRating)
-        //    .HasMaxLength(10)
-        //    .HasCharSet("utf8mb4")
-        //    .UseCollation("utf8mb4_unicode_ci")
-        //    .HasColumnName("energy_efficiency_rating");
+            
+            
         builder.Property(e => e.EnergyEfficiencyRating)
-    .HasColumnName("energy_efficiency_rating")
-    .HasColumnType("int")
-    .HasConversion(
-        // model(string) -> provider(int)
-        v => string.IsNullOrWhiteSpace(v) ? 0 : int.Parse(v),
-        // provider(int) -> model(string)
-        v => v.ToString()
-    );
-
+            .HasMaxLength(10)
+            .HasCharSet("utf8mb4")
+            .UseCollation("utf8mb4_unicode_ci")
+            .HasColumnName("energy_efficiency_rating");
+            
         // JSON fields - Using JsonHelpers for converter and comparer
         builder.Property(e => e.Specifications)
             .ConfigureAsJson("specifications");
@@ -98,15 +88,13 @@ public class ProductRegistrationConfiguration : IEntityTypeConfiguration<Product
 
         builder.Property(e => e.DimensionsCm)
             .ConfigureAsJson("dimensions_cm");
-
+            
         // Enum conversion
         builder.Property(e => e.Status)
             .HasConversion<string>()
-            .HasColumnName("Status")
             .HasColumnType("enum('pending','approved','rejected')")
             .HasDefaultValue(ProductRegistrationStatus.Pending);
-
-      
+            
         builder.Property(e => e.RejectionReason)
             .HasMaxLength(500)
             .HasCharSet("utf8mb4")

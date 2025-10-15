@@ -30,7 +30,7 @@ public class UploadMultipleImagesAttribute : Attribute, IAsyncActionFilter
                 {
                     http.Items["uploadedImages"] = uploaded;                         // List<UploadResultDto>
                     http.Items["uploadedImageUrls"] = uploaded.Select(x => x.Url).ToList();
-                    http.Items["uploadedImagePublicIds"] = uploaded.Select(x => x.PublicUrl).ToList();
+                    http.Items["uploadedImagePublicIds"] = uploaded.Select(x => x.PublicId).ToList();
                 }
             }
         }

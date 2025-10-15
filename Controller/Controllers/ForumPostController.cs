@@ -71,7 +71,7 @@ namespace Controller.Controllers
 
         // ======== Single CREATE (multipart/form-data) ========
         [HttpPost]
-        //[Authorize] // cần token để lấy UserId
+        [Authorize] // cần token để lấy UserId
         [Consumes("multipart/form-data")]
         [EndpointSummary("Create post")]
         public async Task<ActionResult<ForumPostResponseDTO>> Create([FromForm] ForumPostCreateDTO dto, CancellationToken ct = default)
@@ -85,7 +85,7 @@ namespace Controller.Controllers
             if (dto.CoverImage != null)
             {
                 var up = await _cloudinary.UploadAsync(dto.CoverImage, "forum-posts/cover", ct);
-                cover = new MediaUploadDTO { PublicId = up.PublicUrl, Url = up.Url };
+                cover = new MediaUploadDTO { PublicId = up.PublicId, Url = up.Url };
             }
 
             // Upload gallery nếu có
@@ -93,7 +93,7 @@ namespace Controller.Controllers
             if (dto.Images != null && dto.Images.Count > 0)
             {
                 var ups = await _cloudinary.UploadManyAsync(dto.Images, "forum-posts/images", ct);
-                gallery = ups.Select(x => new MediaUploadDTO { PublicId = x.PublicUrl, Url = x.Url }).ToList();
+                gallery = ups.Select(x => new MediaUploadDTO { PublicId = x.PublicId, Url = x.Url }).ToList();
             }
 
             var created = await _service.CreateAsync(dto, cover, gallery, ct);
@@ -102,7 +102,7 @@ namespace Controller.Controllers
 
         // ======== Single UPDATE (multipart/form-data) ========
         [HttpPut("{id:long}")]
-        //[Authorize]
+        [Authorize]
         [Consumes("multipart/form-data")]
         [EndpointSummary("Update post")]
 
@@ -122,7 +122,7 @@ namespace Controller.Controllers
             if (dto.CoverImage != null)
             {
                 var up = await _cloudinary.UploadAsync(dto.CoverImage, "forum-posts/cover", ct);
-                newCover = new MediaUploadDTO { PublicId = up.PublicUrl, Url = up.Url };
+                newCover = new MediaUploadDTO { PublicId = up.PublicId, Url = up.Url };
             }
 
             // Upload gallery mới nếu có
@@ -130,7 +130,7 @@ namespace Controller.Controllers
             if (dto.Images != null && dto.Images.Count > 0)
             {
                 var ups = await _cloudinary.UploadManyAsync(dto.Images, "forum-posts/images", ct);
-                newGallery = ups.Select(x => new MediaUploadDTO { PublicId = x.PublicUrl, Url = x.Url }).ToList();
+                newGallery = ups.Select(x => new MediaUploadDTO { PublicId = x.PublicId, Url = x.Url }).ToList();
             }
 
             var updated = await _service.UpdateAsync(dto, newCover, newGallery, removeIds, ct);
@@ -139,7 +139,7 @@ namespace Controller.Controllers
 
         // ======== Delete (tuỳ chọn xoá file Cloudinary gửi kèm) ========
         [HttpDelete("{id:long}")]
-        //[Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         [EndpointSummary("Delete post")]
 
         public async Task<ActionResult> Delete(long id, [FromBody] List<string>? cloudinaryPublicIds, CancellationToken ct = default)

@@ -1,8 +1,6 @@
-using BLL.DTO.MediaLink;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using static BLL.DTO.Product.ProductUpdateDTO;
 
 namespace BLL.DTO.ProductRegistration
 {
@@ -30,19 +28,17 @@ namespace BLL.DTO.ProductRegistration
 
         [Range(0, 50000, ErrorMessage = "Khối lượng sản phẩm phải từ 0 đến 50.000 gram")]
         public decimal? WeightKg { get; set; }
-        //public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
-        public required DimensionsDTO DimensionsCm { get; set; }
+        public Dictionary<string, decimal> DimensionsCm { get; set; } = new();
 
 
-        public string? ManualUrl { get; set; }
-        public string? ManualPublicUrl { get; set; }
-
-        // Ảnh SP
-        public List<MediaLinkItemDTO>? AddProductImages { get; set; }
+        // Upload additions/removals
+        public List<IFormFile>? AddImages { get; set; }
         public List<string>? RemoveImagePublicIds { get; set; }
 
-        // File chứng chỉ
-        public List<MediaLinkItemDTO>? AddCertificateFiles { get; set; }
+        public IFormFile? ManualPdf { get; set; }
+
+        // Certificates update
+        public List<IFormFile>? AddCertificates { get; set; }
         public List<string>? RemoveCertificatePublicIds { get; set; }
     }
 }

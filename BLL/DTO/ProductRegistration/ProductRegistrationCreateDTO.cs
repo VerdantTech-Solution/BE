@@ -1,5 +1,4 @@
-﻿using BLL.DTO.MediaLink;
-using DAL.Data;
+﻿using DAL.Data;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -55,14 +54,14 @@ namespace BLL.DTO.ProductRegistration
         [Required(ErrorMessage = "Kích thước sản phẩm là bắt buộc")]
         public required DimensionsDTO DimensionsCm { get; set; }
 
-        // Manual PDF (trả & lưu thẳng trên ProductRegistration)
-        public string? ManualUrl { get; set; }
-        public string? ManualPublicUrl { get; set; }
+        //// MEDIA
+        //public IFormFile? CoverImage { get; set; }
+        public List<IFormFile>? Images { get; set; }
 
-        // Ảnh sản phẩm -> media_links (OwnerType = ProductRegistration)
-        public List<MediaLinkItemDTO>? ProductImages { get; set; }
-
-        // File chứng chỉ -> media_links (OwnerType = ProductCertificate) và tạo record ProductCertificate
-        public List<MediaLinkItemDTO>? CertificateFiles { get; set; }
+        //// PDF manual
+        //public IFormFile? ManualPdf { get; set; }
+        // Upload (multipart/form-data)
+        public IFormFile? ManualPdf { get; set; }                         // PDF hướng dẫn
+        public List<IFormFile>? Certificates { get; set; }
     }
 }

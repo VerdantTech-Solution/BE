@@ -161,7 +161,7 @@ namespace Controller.Controllers
                     var dtoImgs = ups.Select((u, i) => new MediaUploadDTO
                     {
                         Url = u.Url,
-                        PublicId = u.PublicUrl,
+                        PublicId = u.PublicId,
                         SortOrder = i
                     }).ToList();
 
@@ -226,7 +226,7 @@ namespace Controller.Controllers
                 var dtoImgs = ups.Select((u, i) => new MediaUploadDTO
                 {
                     Url = u.Url,
-                    PublicId = u.PublicUrl,
+                    PublicId = u.PublicId,
                     SortOrder = i
                 }).ToList();
 
