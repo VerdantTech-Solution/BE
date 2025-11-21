@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Controller.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class CropController : ControllerBase
     {
