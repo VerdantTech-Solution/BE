@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Controller.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("api/[controller]")]
     public class CropController : ControllerBase
     {
@@ -18,6 +17,7 @@ namespace Controller.Controllers
 
 
         [HttpGet]
+        [Authorize]
         [EndpointSummary("Lấy danh sách crop (phân trang)")]
         [EndpointDescription("Trả về danh sách crop đang active, hỗ trợ phân trang bằng page và pageSize.")]
         //[ProducesResponseType(typeof(IEnumerable<CropResponseDTO>), StatusCodes.Status200OK)]
@@ -32,6 +32,7 @@ namespace Controller.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize]
         [EndpointSummary("Lấy chi tiết một crop")]
         [EndpointDescription("Trả về thông tin chi tiết của một crop theo Id.")]
         //[ProducesResponseType(typeof(CropResponseDTO), StatusCodes.Status200OK)]
@@ -44,6 +45,7 @@ namespace Controller.Controllers
         }
 
         [HttpGet("farm/{farmProfileId}")]
+        [Authorize]
         [EndpointSummary("Lấy tất cả crop theo farm")]
         [EndpointDescription("Trả về toàn bộ crop (đang active) thuộc về FarmProfileId, không phân trang.")]
         [ProducesResponseType(typeof(IEnumerable<CropResponseDTO>), StatusCodes.Status200OK)]
@@ -58,6 +60,7 @@ namespace Controller.Controllers
 
 
         [HttpPost]
+        [Authorize]
         [EndpointSummary("Tạo mới crop (1 hoặc nhiều)")]
         [EndpointDescription("Tạo một hoặc nhiều crop cho cùng một FarmProfile dựa trên danh sách Crops trong CropCreateDto.")]
         //[ProducesResponseType(typeof(IEnumerable<CropResponseDTO>), StatusCodes.Status201Created)]
@@ -76,6 +79,7 @@ namespace Controller.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         [EndpointSummary("Cập nhật thông tin một crop")]
         [EndpointDescription("Cập nhật tên cây trồng, ngày gieo trồng và trạng thái IsActive.")]
         //[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -91,6 +95,7 @@ namespace Controller.Controllers
         }
 
         [HttpDelete("soft/{id}")]
+        [Authorize]
         [EndpointSummary("Xóa mềm một crop")]
         [EndpointDescription("Đặt IsActive = false cho crop tương ứng, không xóa vật lý khỏi database.")]
         //[ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -104,6 +109,7 @@ namespace Controller.Controllers
 
 
         [HttpDelete("hard/{id}")]
+        [Authorize]
         [EndpointSummary("Xóa cứng một crop")]
         [EndpointDescription("Xóa vĩnh viễn crop khỏi database, không thể khôi phục.")]
         //[ProducesResponseType(StatusCodes.Status204NoContent)]
