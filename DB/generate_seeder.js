@@ -155,7 +155,7 @@ function generateSpecs(productName, categoryName) {
         specs.quality = 'Premium';
     }
 
-    return JSON.stringify(specs).replace(/"/g, '\\"');
+    return JSON.stringify(specs);
 }
 
 function generateWeightDimensions(productName) {
@@ -237,7 +237,7 @@ function generateWeightDimensions(productName) {
 
     return {
         weight: weight.toFixed(3),
-        dimensions: JSON.stringify(dimensions).replace(/"/g, '\\"')
+        dimensions: JSON.stringify(dimensions)
     };
 }
 
@@ -529,7 +529,7 @@ function generateProducts(products, categoryMap) {
         const price = Math.floor(Math.random() * (50000 - 5000 + 1) + 5000);
         const roundedPrice = Math.round(price / 100) * 100;
 
-        rows.push(`(${productId}, ${categoryDbId}, ${vendorId}, '${productCode}', '${escapeSQL(p.productName)}', '${slug}', 'Sản phẩm ${escapeSQL(p.productName)} chất lượng cao', ${roundedPrice}.00, 10.00, 0.00, ${energyRating}, "${specs}", NULL, NULL, ${warranty}, ${STOCK_QUANTITY}, ${weight}, "${dimensions}", 1, 0, 0, 0.00, NULL, NOW(), NOW())`);
+        rows.push(`(${productId}, ${categoryDbId}, ${vendorId}, '${productCode}', '${escapeSQL(p.productName)}', '${slug}', 'Sản phẩm ${escapeSQL(p.productName)} chất lượng cao', ${roundedPrice}.00, 10.00, 0.00, ${energyRating}, '${specs}', NULL, NULL, ${warranty}, ${STOCK_QUANTITY}, ${weight}, '${dimensions}', 1, 0, 0, 0.00, NULL, NOW(), NOW())`);
 
         p.dbId = productId;
         p.vendorId = vendorId;
